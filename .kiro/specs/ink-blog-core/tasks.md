@@ -247,7 +247,7 @@
     - `serialize(definition)` → 将 SkillDefinition 序列化回 Markdown
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-  - [ ] 11.2 实现 `SkillRegistry`（`ink_core/skills/registry.py`）
+  - [x] 11.2 实现 `SkillRegistry`（`ink_core/skills/registry.py`）
     - `register(skill)` → 注册 Skill 实例
     - `resolve(name)` → 按名称查找 Skill
     - `list_all()` → 列出所有已注册 Skill
