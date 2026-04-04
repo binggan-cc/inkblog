@@ -119,7 +119,7 @@
     - **Property 11: Canonical ID 全局一致性**
     - **Validates: Requirements 6.6**
 
-- [~] 4. Checkpoint - 核心文件系统层验证
+- [x] 4. Checkpoint - 核心文件系统层验证
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
 - [~] 5. 发布记录管理
