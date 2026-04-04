@@ -273,7 +273,7 @@
     - `parse(text: str) -> ParseResult`：匹配成功返回 `ParseResult(intent=Intent(...), error=None)`；无法识别返回 `ParseResult(intent=None, error="...", candidates=[...])`，不返回 None
     - _Requirements: 1.1, 1.2, 1.4_
 
-  - [~] 12.2 实现各内置命令（`ink_core/cli/builtin.py`）
+  - [x] 12.2 实现各内置命令（`ink_core/cli/builtin.py`）
     - `BuiltinCommand` ABC 已在 1.2 定义，此处实现四个具体命令
     - `NewCommand`：调用 ArticleManager.create，返回 SkillResult
     - `InitCommand`：调用 GitManager.init_repo，返回 SkillResult
