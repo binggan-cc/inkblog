@@ -281,7 +281,7 @@
     - `RebuildCommand`：遍历所有 Article，调用 L0/L1Generator 全量重建 .abstract/.overview；再调用 IndexManager 重建 `_index/timeline.json`；可选重建 `_index/graph.json`（需先执行 analyze）；返回 SkillResult
     - _Requirements: 1.10, 1.11, 6.1, 7.6, 2.10_
 
-  - [~] 12.3 实现 `IntentRouter`（`ink_core/cli/intent.py`）
+  - [x] 12.3 实现 `IntentRouter`（`ink_core/cli/intent.py`）
     - `resolve(intent) -> RouteResult`：先检查 BuiltinCommand 表，再查 SkillRegistry，两者不重叠
     - 匹配到 BuiltinCommand → RouteResult.target = BuiltinCommand 实例
     - 匹配到 Skill → RouteResult.target = Skill 实例
