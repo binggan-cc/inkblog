@@ -172,7 +172,7 @@
     - 路径不存在时返回错误 + 可用 Article 列表
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-  - [ ] 7.2 实现 `WikiLinkResult` 与 `resolve_wiki_link()`（`ink_core/skills/analyze.py`）
+  - [x] 7.2 实现 `WikiLinkResult` 与 `resolve_wiki_link()`（`ink_core/skills/analyze.py`）
     - `[[文章名]]` 匹配唯一 Article → resolved，返回 Canonical ID
     - `[[文章名]]` 匹配多个候选 → ambiguous，不建立确定性边
     - `[[文章名]]` 未匹配任何 Article → unresolved
