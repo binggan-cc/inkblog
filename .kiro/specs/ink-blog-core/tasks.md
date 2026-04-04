@@ -13,7 +13,7 @@
     - 创建 `tests/conftest.py`，定义共享 fixtures（临时 ink 目录、示例文章）
     - _Requirements: 1.1, 1.5, 1.8_
 
-  - [~] 1.2 实现核心数据模型与基础接口
+  - [x] 1.2 实现核心数据模型与基础接口
     - 在 `ink_core/core/errors.py` 中定义全部领域异常：`PathNotFoundError`、`PathConflictError`、`InvalidStatusError`、`UnsupportedChannelError`、`TemplateRenderError`、`ChannelOutputError`、`AmbiguousLinkError`、`UnresolvedLinkError`、`SkillNotFoundError`、`SkillLoadError`、`GitNotInitError`、`LayerCorruptError`、`ConfigError`
     - 在 `ink_core/cli/intent.py` 中定义 `Intent` dataclass（action, target, params）、`ParseResult` dataclass（intent: Intent | None, error: str | None, candidates: list[str] | None）、`RouteResult` dataclass（target, error, candidates）
     - 在 `ink_core/cli/builtin.py` 中定义 `BuiltinCommand` ABC（name: str，run(target, params) -> SkillResult）
