@@ -1,0 +1,569 @@
+#!/usr/bin/env python3
+"""
+Ink CLI v2 - Liquid Blog 命令行工具（增强版）
+意图驱动的交互界面，像水一样适应容器
+"""
+
+import argparse
+import sys
+import os
+import re
+import json
+from pathlib import Path
+from datetime import datetime, timedelta
+import yaml
+
+# 配置
+INK_HOME = Path.home() / 'ink'
+SKILLS_DIR = INK_HOME / '.ink' / 'skills'
+SCRIPTS_DIR = INK_HOME / '.ink' / 'scripts'
+CONFIG_FILE = INK_HOME / '.ink' / 'config.yaml'
+
+# 颜色定义
+class Colors:
+    HEADER = '\033[95m'
+    BLUE = '\033[94m'
+    CYAN = '\033[96m'
+    GREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    END = '\033[0m'
+    BOLD = '\033[1m'
+
+def color(text, color_code):
+    """添加颜色"""
+    return f"{color_code}{text}{Colors.END}"
+
+def load_config():
+    """加载配置"""
+    if CONFIG_FILE.exists():
+        with open(CONFIG_FILE) as f:
+            return yaml.safe_load(f)
+    return {}
+
+def ensure_ink_home():
+    """确保 Ink 目录存在"""
+    INK_HOME.mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '.ink' / 'skills').mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '.ink' / 'scripts').mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '.ink' / 'workflows').mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '.ink' / 'sessions').mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '_index').mkdir(parents=True, exist_ok=True)
+    (INK_HOME / '_templates').mkdir(parents=True, exist_ok=True)
+
+def get_skill_path(skill_name):
+    """获取 Skill 文件路径"""
+    return SKILLS_DIR / f"{skill_name}.md"
+
+def get_script_path(script_name):
+    """获取脚本路径"""
+    return SCRIPTS_DIR / f"{script_name}.py"
+
+def list_skills():
+    """列出所有可用 Skills"""
+    if not SKILLS_DIR.exists():
+        return []
+    return sorted([f.stem for f in SKILLS_DIR.glob('*.md')])
+
+def execute_skill(skill_name, args_list=None):
+    """执行 Skill"""
+    skill_path = get_skill_path(skill_name)
+    
+    if not skill_path.exists():
+        print(f"{color('❌', Colors.FAIL)} Skill 不存在: {skill_name}")
+        available = list_skills()
+        if available:
+            print(f"可用 Skills: {', '.join(available)}")
+        return 1
+    
+    # 读取 Skill 内容
+    with open(skill_path) as f:
+        content = f.read()
+    
+    # 提取代码块
+    code_blocks = re.findall(r'```python\n(.*?)```', content, re.DOTALL)
+    
+    if not code_blocks:
+        print(f"{color('⚠️', Colors.WARNING)} Skill {skill_name} 中没有可执行代码")
+        return 1
+    
+    code = code_blocks[0]
+    
+    # 使用 subprocess 执行
+    import subprocess
+    import tempfile
+    
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        f.write(code)
+        temp_file = f.name
+    
+    try:
+        cmd = [sys.executable, temp_file] + (args_list or [])
+        result = subprocess.run(cmd)
+        return result.returncode
+    finally:
+        os.unlink(temp_file)
+
+def execute_script(script_name, args_list=None):
+    """执行脚本"""
+    script_path = get_script_path(script_name)
+    
+    if not script_path.exists():
+        print(f"{color('❌', Colors.FAIL)} 脚本不存在: {script_name}")
+        return 1
+    
+    import subprocess
+    cmd = [sys.executable, str(script_path)] + (args_list or [])
+    result = subprocess.run(cmd)
+    return result.returncode
+
+# ========== 命令实现 ==========
+
+def cmd_init(args):
+    """初始化 Ink 环境"""
+    ensure_ink_home()
+    
+    if not CONFIG_FILE.exists():
+        default_config = {
+            'site': {
+                'title': 'My Liquid Blog',
+                'description': 'A blog powered by Skills',
+                'author': 'Anonymous'
+            },
+            'channels': {
+                'blog': {'type': 'static', 'output': './_site'}
+            },
+            'search': {
+                'engine': 'hybrid',
+                'top_k': 10
+            },
+            'editor': os.environ.get('EDITOR', 'vim'),
+            'git': {
+                'auto_commit': True,
+                'commit_message_template': 'Update at {date}'
+            }
+        }
+        with open(CONFIG_FILE, 'w') as f:
+            yaml.dump(default_config, f, default_flow_style=False)
+        print(f"{color('✅', Colors.GREEN)} 配置文件已创建: {CONFIG_FILE}")
+    
+    # 初始化 Git
+    git_script = get_script_path('git-integration')
+    if git_script.exists():
+        execute_script('git-integration', ['init'])
+    
+    print(f"{color('✅', Colors.GREEN)} Ink 环境已初始化: {INK_HOME}")
+    return 0
+
+def cmd_new(args):
+    """创建新文章"""
+    ensure_ink_home()
+    
+    title = args.title
+    now = datetime.now()
+    
+    # 生成 slug
+    slug = re.sub(r'[^\w\s-]', '', title).strip().lower()
+    slug = re.sub(r'[-\s]+', '-', slug)
+    
+    # 创建目录
+    article_dir = INK_HOME / f"{now:%Y}" / f"{now:%m}" / f"{now:%d}-{slug}"
+    article_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 创建 L0
+    abstract = title[:100]
+    (article_dir / '.abstract').write_text(abstract, encoding='utf-8')
+    
+    # 创建 L1
+    overview = {
+        'title': title,
+        'created_at': now.isoformat(),
+        'updated_at': now.isoformat(),
+        'status': 'draft',
+        'tags': args.tags.split(',') if args.tags else [],
+        'category': args.category or 'uncategorized'
+    }
+    with open(article_dir / '.overview', 'w') as f:
+        yaml.dump(overview, f, default_flow_style=False)
+    
+    # 创建 L2
+    template_path = INK_HOME / '_templates' / (args.template or 'default') / 'index.md'
+    if template_path.exists():
+        content = template_path.read_text(encoding='utf-8')
+        content = content.replace('{{title}}', title)
+        content = content.replace('{{date}}', now.strftime('%Y-%m-%d'))
+    else:
+        content = f"""# {title}
+
+> 创建于 {now:%Y-%m-%d %H:%M}
+
+## 摘要
+
+{abstract}
+
+## 正文
+
+开始写作...
+
+## 参考
+
+- 
+"""
+    
+    (article_dir / 'index.md').write_text(content, encoding='utf-8')
+    (article_dir / 'assets').mkdir(exist_ok=True)
+    
+    print(f"{color('✅', Colors.GREEN)} 文章已创建: {article_dir}")
+    print(f"   📄 {color('L0', Colors.CYAN)} 摘要: .abstract")
+    print(f"   📋 {color('L1', Colors.CYAN)} 概览: .overview")
+    print(f"   📝 {color('L2', Colors.CYAN)} 内容: index.md")
+    
+    # 自动生成三层上下文
+    layer_gen = get_script_path('layer-generator')
+    if layer_gen.exists():
+        execute_script('layer-generator', [str(article_dir)])
+    
+    if args.edit:
+        cmd_edit(argparse.Namespace(path=str(article_dir)))
+    
+    return 0
+
+def cmd_edit(args):
+    """编辑文章"""
+    article_path = Path(args.path)
+    if not article_path.is_absolute():
+        article_path = INK_HOME / article_path
+    
+    if not article_path.exists():
+        print(f"{color('❌', Colors.FAIL)} 路径不存在: {article_path}")
+        return 1
+    
+    editor = os.environ.get('EDITOR', 'vim')
+    index_file = article_path / 'index.md'
+    
+    if index_file.exists():
+        os.system(f"{editor} {index_file}")
+        
+        # 编辑后自动更新 L0/L1
+        layer_gen = get_script_path('layer-generator')
+        if layer_gen.exists():
+            print(f"\n{color('🔄', Colors.CYAN)} 更新三层上下文...")
+            execute_script('layer-generator', [str(article_path)])
+    else:
+        print(f"{color('❌', Colors.FAIL)} 未找到 index.md: {index_file}")
+        return 1
+    
+    return 0
+
+def cmd_status(args):
+    """显示状态"""
+    print(f"\n{color('🌊', Colors.CYAN)} {color('Liquid Blog 状态', Colors.BOLD)}")
+    print("=" * 50)
+    
+    print(f"\n📁 根目录: {INK_HOME}")
+    print(f"   存在: {color('✓', Colors.GREEN) if INK_HOME.exists() else color('✗', Colors.FAIL)}")
+    
+    if INK_HOME.exists():
+        # 统计文章
+        article_count = 0
+        draft_count = 0
+        published_count = 0
+        
+        for year_dir in INK_HOME.iterdir():
+            if not year_dir.is_dir() or year_dir.name.startswith('_'):
+                continue
+            for month_dir in year_dir.iterdir():
+                if not month_dir.is_dir():
+                    continue
+                for article_dir in month_dir.iterdir():
+                    if not article_dir.is_dir():
+                        continue
+                    article_count += 1
+                    
+                    # 检查状态
+                    overview_file = article_dir / '.overview'
+                    if overview_file.exists():
+                        try:
+                            with open(overview_file) as f:
+                                overview = yaml.safe_load(f)
+                            status = overview.get('status', 'unknown')
+                            if status == 'draft':
+                                draft_count += 1
+                            elif status == 'published':
+                                published_count += 1
+                        except:
+                            pass
+        
+        print(f"\n{color('📝', Colors.CYAN)} 文章统计:")
+        print(f"   总计: {article_count}")
+        print(f"   草稿: {draft_count}")
+        print(f"   已发布: {published_count}")
+        
+        # Git 状态
+        git_script = get_script_path('git-integration')
+        if git_script.exists():
+            print(f"\n{color('📦', Colors.CYAN)} Git 状态:")
+            execute_script('git-integration', ['status'])
+        
+        # Skills
+        skills = list_skills()
+        print(f"\n{color('🛠️', Colors.CYAN)} 已安装 Skills ({len(skills)}):")
+        for skill in skills:
+            print(f"   • {skill}")
+    
+    return 0
+
+def cmd_list(args):
+    """列出所有文章"""
+    print(f"\n{color('📝', Colors.CYAN)} 文章列表\n" + "=" * 60)
+    
+    articles = []
+    
+    for year_dir in sorted(INK_HOME.iterdir()):
+        if not year_dir.is_dir() or year_dir.name.startswith('_'):
+            continue
+        
+        for month_dir in sorted(year_dir.iterdir()):
+            if not month_dir.is_dir():
+                continue
+            
+            for article_dir in sorted(month_dir.iterdir()):
+                if not article_dir.is_dir():
+                    continue
+                
+                overview_file = article_dir / '.overview'
+                title = article_dir.name
+                status = "?"
+                tags = []
+                
+                if overview_file.exists():
+                    try:
+                        with open(overview_file) as f:
+                            overview = yaml.safe_load(f)
+                        title = overview.get('title', article_dir.name)
+                        status = overview.get('status', '?')[0].upper()
+                        tags = overview.get('tags', [])
+                    except:
+                        pass
+                
+                status_icon = {
+                    'D': color('📝', Colors.WARNING),  # draft
+                    'R': color('👀', Colors.CYAN),     # review
+                    'Y': color('✅', Colors.GREEN),    # ready
+                    'P': color('🚀', Colors.BLUE),     # published
+                    'A': color('📦', Colors.HEADER)    # archived
+                }.get(status, color('❓', Colors.FAIL))
+                
+                articles.append({
+                    'path': str(article_dir.relative_to(INK_HOME)),
+                    'title': title,
+                    'status': status_icon,
+                    'tags': tags,
+                    'date': f"{year_dir.name}-{month_dir.name}"
+                })
+    
+    # 显示
+    for i, article in enumerate(articles[-20:], 1):  # 最近20篇
+        print(f"\n{i}. {article['status']} {color(article['title'][:40], Colors.BOLD)}")
+        print(f"   📁 {article['path']}")
+        if article['tags']:
+            print(f"   {' '.join(f'#{t}' for t in article['tags'][:3])}")
+    
+    if len(articles) > 20:
+        print(f"\n... 还有 {len(articles) - 20} 篇文章")
+    
+    return 0
+
+def cmd_layer(args):
+    """三层上下文管理"""
+    if args.generate:
+        if args.path:
+            return execute_script('layer-generator', [args.path])
+        else:
+            return execute_script('layer-generator', ['--batch'])
+    
+    if args.info:
+        article_path = INK_HOME / args.path
+        print(f"\n{color('📊', Colors.CYAN)} 三层上下文信息: {args.path}\n")
+        
+        l0_file = article_path / '.abstract'
+        l1_file = article_path / '.overview'
+        l2_file = article_path / 'index.md'
+        
+        if l0_file.exists():
+            l0_content = l0_file.read_text(encoding='utf-8').strip()
+            print(f"{color('L0', Colors.CYAN)} 摘要 ({len(l0_content)} 字符):")
+            print(f"   {l0_content[:100]}...")
+        
+        if l1_file.exists():
+            l1_content = l1_file.read_text(encoding='utf-8').strip()
+            print(f"\n{color('L1', Colors.CYAN)} 概览 ({len(l1_content)} 字符)")
+        
+        if l2_file.exists():
+            l2_content = l2_file.read_text(encoding='utf-8').strip()
+            print(f"\n{color('L2', Colors.CYAN)} 详情 ({len(l2_content)} 字符)")
+    
+    return 0
+
+def cmd_git(args):
+    """Git 命令包装"""
+    git_args = []
+    
+    if args.command == 'status':
+        git_args = ['status']
+    elif args.command == 'commit':
+        git_args = ['commit', '-m', args.message] if args.message else ['commit']
+        if args.path:
+            git_args.extend(['--', args.path])
+    elif args.command == 'log':
+        git_args = ['log', f'-{args.n}']
+    elif args.command == 'push':
+        git_args = ['push']
+    elif args.command == 'pull':
+        git_args = ['pull']
+    
+    return execute_script('git-integration', git_args)
+
+def cmd_nlp(args):
+    """自然语言解析入口"""
+    query = args.query
+    
+    # 简单的意图识别规则
+    intent_map = {
+        r'(发布|publish|deploy|上线)': ('publish', extract_path(query)),
+        r'(搜索|查找|find|search|找)': ('search', [extract_quoted(query) or query]),
+        r'(分析|统计|analyze|stats)': ('analyze', None),
+        r'(新建|创建|new|create)': ('new', [extract_quoted(query)]),
+        r'(编辑|修改|edit)': ('edit', [extract_path(query)]),
+        r'(同步|备份|sync|backup)': ('sync', None),
+        r'(模板|template)': ('template', ['list']),
+        r'(提交|commit)': ('git', ['commit', '-m', query]),
+        r'(状态|status)': ('status', None),
+        r'(列表|list|ls)': ('list', None),
+    }
+    
+    for pattern, (skill, skill_args) in intent_map.items():
+        if re.search(pattern, query, re.I):
+            print(f"{color('🤖', Colors.CYAN)} 识别意图: {skill}")
+            
+            if skill in ['new', 'edit', 'status', 'list']:
+                # 内置命令
+                if skill == 'new' and skill_args:
+                    return cmd_new(argparse.Namespace(title=skill_args[0], edit=False, tags=None, template=None, category=None))
+                elif skill == 'edit' and skill_args:
+                    return cmd_edit(argparse.Namespace(path=skill_args[0]))
+                elif skill == 'status':
+                    return cmd_status(argparse.Namespace())
+                elif skill == 'list':
+                    return cmd_list(argparse.Namespace())
+            else:
+                # Skill 调用
+                args_list = skill_args if skill_args else []
+                return execute_skill(skill, args_list)
+    
+    # 尝试直接匹配 skill 名称
+    words = query.split()
+    if words and words[0] in list_skills():
+        return execute_skill(words[0], words[1:])
+    
+    print(f"{color('❓', Colors.WARNING)} 未能识别意图: {query}")
+    print(f"尝试: ink --help")
+    return 1
+
+def extract_path(text):
+    """从文本中提取路径"""
+    match = re.search(r'(\d{4}[/\\]\d{2}[/\\]\d{2}-[^\s]+)', text)
+    return match.group(1) if match else None
+
+def extract_quoted(text):
+    """提取引号中的文字"""
+    match = re.search(r'["\']([^"\']+)["\']', text)
+    return match.group(1) if match else None
+
+# ========== 主入口 ==========
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=color('Ink CLI v2 - Liquid Blog', Colors.BOLD),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+{color('💧 示例:', Colors.CYAN)}
+  ink init                                    # 初始化环境
+  ink new "标题" --tags ai,ml                 # 创建文章
+  ink edit 2025/03/20-hello/                  # 编辑文章
+  ink publish 2025/03/20-hello/               # 发布文章
+  ink search "关键词"                         # 搜索文章
+  ink layer --generate                        # 生成三层上下文
+  ink sync --message "备份"                   # 同步到 Git
+  ink "把昨天的想法扩展成文章"                # 自然语言
+        """
+    )
+    
+    subparsers = parser.add_subparsers(dest='command', help='命令')
+    
+    # init
+    p = subparsers.add_parser('init', help='初始化 Ink 环境')
+    p.set_defaults(func=cmd_init)
+    
+    # new
+    p = subparsers.add_parser('new', help='创建新文章')
+    p.add_argument('title', help='文章标题')
+    p.add_argument('--tags', '-t', help='标签（逗号分隔）')
+    p.add_argument('--category', '-c', help='分类')
+    p.add_argument('--template', help='使用模板')
+    p.add_argument('--edit', '-e', action='store_true', help='创建后编辑')
+    p.set_defaults(func=cmd_new)
+    
+    # edit
+    p = subparsers.add_parser('edit', help='编辑文章')
+    p.add_argument('path', help='文章路径')
+    p.set_defaults(func=cmd_edit)
+    
+    # status
+    p = subparsers.add_parser('status', help='显示状态')
+    p.set_defaults(func=cmd_status)
+    
+    # list
+    p = subparsers.add_parser('list', help='列出所有文章')
+    p.set_defaults(func=cmd_list)
+    
+    # layer
+    p = subparsers.add_parser('layer', help='三层上下文管理')
+    p.add_argument('--generate', '-g', action='store_true', help='生成三层上下文')
+    p.add_argument('--info', '-i', action='store_true', help='显示信息')
+    p.add_argument('path', nargs='?', help='文章路径')
+    p.set_defaults(func=cmd_layer)
+    
+    # Skill 包装命令
+    for skill in ['publish', 'analyze', 'search', 'sync', 'template']:
+        p = subparsers.add_parser(skill, help=f'运行 {skill} skill')
+        p.add_argument('args', nargs='*', help='参数')
+        p.set_defaults(func=lambda args, skill=skill: execute_skill(skill, args.args))
+    
+    # git
+    p = subparsers.add_parser('git', help='Git 操作')
+    p.add_argument('command', choices=['status', 'commit', 'log', 'push', 'pull'])
+    p.add_argument('--message', '-m', help='提交信息')
+    p.add_argument('--path', help='文件路径')
+    p.add_argument('-n', type=int, default=10, help='显示数量')
+    p.set_defaults(func=cmd_git)
+    
+    # 自然语言入口
+    parser.add_argument('query', nargs='?', help='自然语言命令')
+    
+    args = parser.parse_args()
+    
+    # 无子命令但有 query，使用 NLP
+    if args.command is None and args.query:
+        return cmd_nlp(args)
+    
+    # 无命令无 query，显示帮助
+    if args.command is None:
+        parser.print_help()
+        return 0
+    
+    # 执行命令
+    return args.func(args)
+
+if __name__ == '__main__':
+    sys.exit(main())

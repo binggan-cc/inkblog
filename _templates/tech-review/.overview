@@ -1,0 +1,7 @@
+title: "{{title}}"
+created_at: "{{datetime}}"
+status: draft
+tags: ["tech-review", "评测"]
+category: tech
+rating: 0
+tested: false

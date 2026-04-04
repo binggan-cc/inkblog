@@ -1,0 +1,5 @@
+title: "{{title}}"
+created_at: "{{date}}"
+status: draft
+tags: []
+category: uncategorized
