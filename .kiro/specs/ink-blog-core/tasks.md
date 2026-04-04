@@ -134,7 +134,7 @@
     - **Property 15: 发布记录完整性**
     - **Validates: Requirements 3.13, 3.14**
 
-- [-] 6. Skills 层：Publish
+- [x] 6. Skills 层：Publish
   - [x] 6.1 实现 `PublisherAdapter` 及三个 Phase 1 适配器（`ink_core/skills/publish.py`）
     - `BlogFileAdapter`：生成本地 blog 格式文件
     - `NewsletterFileAdapter`：生成本地 newsletter 格式文件
