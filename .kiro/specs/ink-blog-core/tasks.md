@@ -187,7 +187,7 @@
     - **Property 18: Wiki Link 解析完整性**
     - **Validates: Requirements 4.7, 4.8, 4.9**
 
-- [-] 8. Skills 层：Search
+- [x] 8. Skills 层：Search
   - [x] 8.1 实现 `SearchSkill`（`ink_core/skills/search.py`）
     - L0 层关键词匹配，结果少于 3 条时自动扩展到 L1 层，最终结果为两层并集
     - 结果排序：标题命中 > 标签命中 > L0 命中 > L1 命中 > L2 命中；同层级按命中次数降序；仍相同按 date 倒序
