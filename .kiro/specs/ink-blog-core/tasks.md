@@ -104,7 +104,7 @@
     - **Property 7: 派生文件覆盖一致性**
     - **Validates: Requirements 2.14, 2.15**
 
-  - [~] 3.11 实现 `IndexManager`（`ink_core/fs/index_manager.py`）
+  - [x] 3.11 实现 `IndexManager`（`ink_core/fs/index_manager.py`）
     - `update_timeline(article)` → 更新 `_index/timeline.json`，按 date 倒序排列，date 相同按 updated_at 倒序
     - `read_timeline()` → 读取时间线索引
     - `update_graph(graph_data)` → 更新 `_index/graph.json`，ambiguous/unresolved 无数据时写空数组
