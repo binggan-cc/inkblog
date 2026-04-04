@@ -122,8 +122,8 @@
 - [x] 4. Checkpoint - 核心文件系统层验证
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
-- [~] 5. 发布记录管理
-  - [ ] 5.1 实现 `PublishHistoryManager`（`ink_core/core/publish_history.py`）
+- [-] 5. 发布记录管理
+  - [x] 5.1 实现 `PublishHistoryManager`（`ink_core/core/publish_history.py`）
     - `record(session_id, canonical_id, attempted_at, records)` → 在 `.ink/publish-history/YYYY/MM/DD-slug/` 目录下生成 `YYYYMMDD-HHMMSS-publish-<hash>.json`；Canonical ID 中的 `/` 直接映射为目录层级
     - 记录文件顶层必须包含 `session_id`、`canonical_id`、`attempted_at`、`channels` 四个字段
     - `get_history(canonical_id)` → 遍历对应目录返回所有历史记录
