@@ -288,7 +288,7 @@
     - 未匹配 → RouteResult.target = None，error 含失败原因，candidates 含可用列表
     - _Requirements: 1.3, 1.4_
 
-  - [~] 12.4 实现 `CommandExecutor`（`ink_core/core/executor.py`）
+  - [x] 12.4 实现 `CommandExecutor`（`ink_core/core/executor.py`）
     - `execute(intent) -> int`：创建 ExecutionContext（含 session_id）→ 调用 IntentRouter.resolve() → 调用 BuiltinCommand.run() 或 Skill.execute() → 累积 changed_files（含自愈产生的文件）→ 调用 SessionLogger.log() → 条件触发 GitManager.aggregate_commit() → 返回退出码
     - Git commit 触发规则：仅 `new`、`init`、`rebuild`、`publish` 及其他显式写命令触发 `aggregate_commit()`；`search`、`analyze` 即使发生自愈写入，也仅记录到 Session，不自动 commit
     - 统一格式化成功输出（操作名称、目标、耗时）和失败输出（错误类型、位置、建议修复步骤）
