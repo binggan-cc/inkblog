@@ -267,7 +267,7 @@
     - 定义 `ValidationIssue` dataclass（level, path, message）和 `Validator` 类接口（validate_article、validate_indexes、validate_skills），Phase 1 返回空列表
     - 预留接口供后续 `ink validate` 和 `ink rebuild --check` 使用，Phase 1 不实现具体校验逻辑
 
-- [-] 12. CLI 层：解析器、路由与执行事务
+- [x] 12. CLI 层：解析器、路由与执行事务
   - [x] 12.1 实现 `NLParser`（`ink_core/cli/intent.py`）
     - 规则匹配优先：正则模式匹配常见意图（发布、搜索、创建等）
     - `parse(text: str) -> ParseResult`：匹配成功返回 `ParseResult(intent=Intent(...), error=None)`；无法识别返回 `ParseResult(intent=None, error="...", candidates=[...])`，不返回 None
