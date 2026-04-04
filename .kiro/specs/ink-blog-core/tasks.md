@@ -294,7 +294,7 @@
     - 统一格式化成功输出（操作名称、目标、耗时）和失败输出（错误类型、位置、建议修复步骤）
     - _Requirements: 1.6, 1.7, 6.8_
 
-  - [~] 12.5 实现 `InkCLI`（`ink_core/cli/parser.py`）
+  - [x] 12.5 实现 `InkCLI`（`ink_core/cli/parser.py`）
     - 统一 argparse 子命令 + NLP 自然语言入口
     - 子命令：init、new、rebuild、publish、analyze、search、skills
     - 无子命令时走 NLParser 路由
