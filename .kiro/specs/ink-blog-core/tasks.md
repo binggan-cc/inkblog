@@ -55,7 +55,7 @@
     - 这是 Publish/Analyze/Search/L1Generator 的共用基础，避免各处重复解析逻辑
     - _Requirements: 2.6, 2.12, 3.1, 6.2_
 
-  - [~] 3.1 实现 `L0Generator` 和 `L1Generator`（`ink_core/fs/layer_generator.py`）
+  - [-] 3.1 实现 `L0Generator` 和 `L1Generator`（`ink_core/fs/layer_generator.py`）
     - `L0Generator.generate(content)` → 单行 ≤200 字符摘要
     - `L1Generator.generate(content, existing=None)` → 包含 title、tags、summary、related 的 YAML frontmatter + Markdown 章节；`existing` 仅用于读取历史元数据（如 created_at），不保留人工修改内容
     - _Requirements: 2.5, 2.6_
