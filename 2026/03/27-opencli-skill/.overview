@@ -1,0 +1,14 @@
+title: "OpenCLI：多平台浏览器自动化方案"
+created_at: "2026-03-27T14:00:00"
+updated_at: "2026-03-27T14:00:00"
+status: published
+tags: ["opencli", "browser", "automation", "multi-platform", "tools"]
+category: tech
+template: tech
+summary: "OpenCLI通过连接Chrome复用登录状态，实现44个平台244个命令的操作能力，无需API Key即可操作知乎、B站、小红书、Twitter等平台"
+key_points:
+  - 44个平台244个命令
+  - 复用Chrome登录状态
+  - 无需API Key和开发者账号
+  - OpenClaw Skill封装
+word_count: 2800

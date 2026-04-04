@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>镜头运动×场景预设速查表 - 程老师的数字花园</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            background: #fafafa;
+        }
+        nav {
+            margin-bottom: 2rem;
+        }
+        nav a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        nav a:hover { text-decoration: underline; }
+        .article-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .article-header h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #999;
+        }
+        .tag {
+            background: #f0f4f8;
+            color: #5a6c7d;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .content h1 { font-size: 1.8rem; margin: 2rem 0 1rem; color: #2c3e50; }
+        .content h2 { font-size: 1.4rem; margin: 2rem 0 0.8rem; color: #2c3e50; padding-bottom: 0.3rem; border-bottom: 1px solid #eee; }
+        .content h3 { font-size: 1.2rem; margin: 1.5rem 0 0.6rem; color: #34495e; }
+        .content h4 { font-size: 1.05rem; margin: 1.2rem 0 0.5rem; color: #34495e; }
+        .content p { margin-bottom: 1rem; }
+        .content ul, .content ol { margin: 0.5rem 0 1rem 1.5rem; }
+        .content li { margin-bottom: 0.3rem; }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            color: #555;
+            border-radius: 0 4px 4px 0;
+        }
+        .content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .content code {
+            background: #f0f0f0;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+        }
+        .content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .content th, .content td {
+            border: 1px solid #ddd;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        .content th { background: #f5f5f5; font-weight: 600; }
+        .content tr:nth-child(even) { background: #fafafa; }
+        .content hr { border: none; border-top: 1px solid #e0e0e0; margin: 2rem 0; }
+        .content a { color: #3498db; text-decoration: none; }
+        .content a:hover { text-decoration: underline; }
+        .content strong { font-weight: 600; }
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #999;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <nav><a href="../../../index.html">← 返回首页</a></nav>
+    
+    <div class="article-header">
+        <h1>镜头运动×场景预设速查表</h1>
+        <div class="article-meta">
+            <span>📅 2026-03-27</span>
+            <span class="tag">video</span><span class="tag">cinematography</span><span class="tag">ai-video</span><span class="tag">prompt</span><span class="tag">reference</span>
+        </div>
+    </div>
+    
+    <div class="content">
+        <blockquote>
+<p><strong>文档类型</strong>: AI视频生成/电影摄影参考<br />
+<strong>学习时间</strong>: 2026-03-27</p>
+</blockquote>
+<hr />
+<h2 id="tldr">TL;DR</h2>
+<p>这是一份专业的<strong>电影镜头运动与场景预设速查表</strong>，涵盖 <strong>4大类场景、12种预设</strong>，每个预设包含完整的拍摄参数和AI提示词。</p>
+<p><strong>核心原则</strong>:
+- 每个镜头只使用一种运动（平移/俯仰/变焦/推轨/跟踪/摇臂/手持/环绕）
+- 10秒短片 = 2-3个镜头组合（每个3-4秒）
+- 锁定风格锚点和调色板贯穿全片
+- 明确标注节拍点（如3.5秒处剪辑；结束前停留1秒）</p>
+<hr />
+<h2 id="_1">一、四大类别速查</h2>
+<h3 id="1-portrait-3">1️⃣ Portrait（人像）- 3种预设</h3>
+<h4 id="preset-1-soft-neon-noir-close-up-noir">Preset 1: Soft Neon-Noir Close-Up（柔和霓虹 noir 特写）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速推轨至特写（单一运动）</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>三分法，视线略高；浅景深（T1.8）</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>暖色主光45° 3200K；青色轮廓光；柔和光晕</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>青橙色调+洋红点缀</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>3.5秒剪辑→呼吸暂停→结尾停留1秒</td>
+</tr>
+</tbody>
+</table>
+<p><strong>AI提示词片段</strong>:</p>
+<blockquote>
+<p>"Golden-hour window light on face; slow dolly-in to CU; cyan rim kisses hair; shallow DOF, skin texture intact; beat at 3.5s, hold 1s."</p>
+</blockquote>
+<hr />
+<h4 id="preset-2-rim-lit-profile-silhouette">Preset 2: Rim-Lit Profile Silhouette（轮廓光剪影）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速右平移20°</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>侧脸中景→特写；视线方向留白</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>双轮廓光5600K，背景20 IRE；无补光</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>冷色单色+单一点缀色</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>~4秒眨眼处剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-3-handheld-micro-jitter-confessional">Preset 3: Handheld Micro-Jitter Confessional（手持微抖忏悔式）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>手持微抖（无甩镜）</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>中近景；保持头顶空间；微偏轴</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>实用灯具暖光+窗户冷光混合</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>自然色调，柔和对比</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>3.2秒吸气处剪辑；以1秒环境音结束</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="2-product-3">2️⃣ Product（产品）- 3种预设</h3>
+<h4 id="preset-1-orbit-hero-reveal">Preset 1: Orbit Hero Reveal（环绕英雄展示）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速环绕120°</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>桌面中景→特写细节</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>顶柔光箱+边缘光；控制高光</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>干净中性+品牌点缀色</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>~3.5秒Logo经过处剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-2-dolly-in-macro-texture">Preset 2: Dolly-In Macro Texture（推轨微距纹理）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速推轨微距</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>极特写纹理，浅景深</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>侧向掠光凸显纤维</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>柔和中性色</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>4秒纹理清晰时剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-3-crane-down-context-hero">Preset 3: Crane Down Context → Hero（摇臂下摇环境→主体）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>摇臂下摇3米定格</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>极远景→中景，中心构图</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>环境填充+聚光池</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>品牌色微妙呈现</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>7秒定格；停留1秒</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="3-street-3">3️⃣ Street（街头）- 3种预设</h3>
+<h4 id="preset-1-tracking-sidewalk-pace">Preset 1: Tracking Sidewalk Pace（人行道跟踪）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>与主体同步左→右跟踪</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>行走速度中景；前景视差</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>阴天柔光或黄昏霓虹</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>冷中性+单一点缀</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>~3.5秒斑马线节拍处剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-2-pan-reveal-alley-sign">Preset 2: Pan Reveal Alley Sign（平移揭示巷弄标识）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速左平移30°</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>远景→中景，标识填满三分</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>实用标识光；柔和填充</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>柔和砖红+饱和标识色</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>标识锁定三分法时剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-3-handheld-crosswalk-burst">Preset 3: Handheld Crosswalk Burst（手持斑马线爆发）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>手持快速定格</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>腰平中景；动态头顶空间</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>可用光；可选高速快门</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>高对比单色或柔和色彩</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>光线变化处剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="4-car-rig-3">4️⃣ Car Rig（车载）- 3种预设</h3>
+<h4 id="preset-1-tracking-low-wheel-pass">Preset 1: Tracking Low Wheel Pass（低角度车轮跟踪）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>低角度侧面跟踪</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>极特写→中景车轮和车身线</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>硬掠射阳光或夜晚钠灯</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>冷钢+暖路高光</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>~3.2秒换挡处剪辑</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-2-orbit-static-hero">Preset 2: Orbit Static Hero（环绕静态英雄）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>慢速环绕90-120°</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>3/4前视然后侧面轮廓</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>柔顶+边缘灯条；工作室环幕</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>中性工作室+品牌点缀</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>7秒定格Logo；停留1秒</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="preset-3-crane-rise-reveal-route">Preset 3: Crane Rise Reveal Route（摇臂升起揭示路线）</h4>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>运动</strong></td>
+<td>摇臂升起4米然后定格</td>
+</tr>
+<tr>
+<td><strong>构图</strong></td>
+<td>中景引擎盖→极远景蜿蜒道路</td>
+</tr>
+<tr>
+<td><strong>灯光</strong></td>
+<td>黄金时段逆光，尘埃光晕</td>
+</tr>
+<tr>
+<td><strong>调色板</strong></td>
+<td>大地色+暖高光</td>
+</tr>
+<tr>
+<td><strong>节拍</strong></td>
+<td>~6.5秒升起完成；停留1秒</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_2">二、核心原则总结</h2>
+<h3 id="21">2.1 基本规则</h3>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>单一运动</strong></td>
+<td>每个镜头只使用一种运动方式</td>
+</tr>
+<tr>
+<td><strong>镜头组合</strong></td>
+<td>10秒短片 = 2-3个镜头（各3-4秒）</td>
+</tr>
+<tr>
+<td><strong>风格锁定</strong></td>
+<td>服装/道具、灯光方向、调色板名称保持一致用词</td>
+</tr>
+<tr>
+<td><strong>节拍明确</strong></td>
+<td>标注剪辑秒数（如3.5秒/7秒）和1秒结尾停留</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22">2.2 运动类型词汇表</h3>
+<ul>
+<li><strong>Pan/Tilt</strong> - 平移/俯仰</li>
+<li><strong>Zoom</strong> - 变焦</li>
+<li><strong>Dolly</strong> - 推轨</li>
+<li><strong>Tracking</strong> - 跟踪</li>
+<li><strong>Crane</strong> - 摇臂</li>
+<li><strong>Handheld</strong> - 手持</li>
+<li><strong>Orbit</strong> - 环绕</li>
+</ul>
+<h3 id="23">2.3 构图术语</h3>
+<ul>
+<li><strong>CU</strong> - Close-Up（特写）</li>
+<li><strong>MCU</strong> - Medium Close-Up（中近景）</li>
+<li><strong>MS</strong> - Medium Shot（中景）</li>
+<li><strong>ELS</strong> - Extreme Long Shot（极远景）</li>
+<li><strong>ECU</strong> - Extreme Close-Up（极特写）</li>
+<li><strong>Rule-of-thirds</strong> - 三分法</li>
+</ul>
+<hr />
+<h2 id="_3">三、调色板速查</h2>
+<table>
+<thead>
+<tr>
+<th>风格</th>
+<th>调色板</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neo-Noir</td>
+<td>Teal-Orange + Magenta</td>
+</tr>
+<tr>
+<td>High-Contrast</td>
+<td>Cool monochrome + single accent</td>
+</tr>
+<tr>
+<td>Documentary</td>
+<td>Natural tones, gentle contrast</td>
+</tr>
+<tr>
+<td>Premium</td>
+<td>Clean neutral + brand accent</td>
+</tr>
+<tr>
+<td>Urban</td>
+<td>Cool neutrals + one accent</td>
+</tr>
+<tr>
+<td>Gritty</td>
+<td>Muted brick + saturated sign</td>
+</tr>
+<tr>
+<td>Automotive</td>
+<td>Cool steel + warm road highlights</td>
+</tr>
+<tr>
+<td>Epic Travel</td>
+<td>Earth tones + warm highlights</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ai">四、AI生成提示词模板</h2>
+<h3 id="41">4.1 标准结构</h3>
+<pre><code>Shot1: [场景描述], [主体动作]; [运动方式]; 
+Shot2: [第二个镜头的动作/定格内容].
+
+Style: [风格名称]
+Camera Movement: [运动类型]
+Lighting: [灯光设置]
+Duration: 10
+Aspect Ratio: 16:9
+Mood: [情绪关键词]
+</code></pre>
+<h3 id="42">4.2 变量替换</h3>
+<ul>
+<li><strong>Lock（锁定）</strong>: 服装/道具、灯光方向、调色板名称</li>
+<li><strong>Remix（混搭）</strong>: 保持相机和灯光，仅更换调色板或镜头感觉</li>
+<li><strong>Single-variable tweaks</strong>: 单一变量调整</li>
+</ul>
+<hr />
+<h2 id="_4">五、需要抑制的瑕疵</h2>
+<ul>
+<li>Face/hair drift（面部/头发漂移）</li>
+<li>Texture crawl（纹理爬行）</li>
+<li>Banding（色带）</li>
+<li>Rolling-shutter（卷帘快门）</li>
+<li>Repeated frames（重复帧）</li>
+<li>HUD misalignment（HUD错位）</li>
+</ul>
+<hr />
+<h2 id="_5">六、速查表汇总</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>预设数</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Portrait</strong></td>
+<td>3</td>
+<td>亲密情绪、戏剧揭示、纪录片诚实</td>
+</tr>
+<tr>
+<td><strong>Product</strong></td>
+<td>3</td>
+<td>360°展示、纹理强调、环境到主体过渡</td>
+</tr>
+<tr>
+<td><strong>Street</strong></td>
+<td>3</td>
+<td>城市跟踪、空间发现、能量爆发</td>
+</tr>
+<tr>
+<td><strong>Car Rig</strong></td>
+<td>3</td>
+<td>速度与粗犷、设计展示、史诗旅行</td>
+</tr>
+</tbody>
+</table>
+<p><strong>总计: 12个专业电影镜头预设</strong></p>
+<hr />
+<h2 id="_6">七、应用场景</h2>
+<h3 id="71-aiseedance-20">7.1 AI视频生成（如Seedance 2.0）</h3>
+<ol>
+<li><strong>直接使用提示词</strong> - 复制Prompt Snippet即可生成</li>
+<li><strong>调整JSON参数</strong> - 精确控制运动、灯光、时长</li>
+<li><strong>组合多个预设</strong> - 创建10-30秒完整短片</li>
+</ol>
+<h3 id="72">7.2 教育内容制作</h3>
+<ul>
+<li><strong>课程演示视频</strong> - 使用Product预设展示教学工具</li>
+<li><strong>人物访谈</strong> - 使用Portrait预设拍摄讲师</li>
+<li><strong>实地考察</strong> - 使用Street/Car Rig预设记录</li>
+</ul>
+<hr />
+<h2 id="_7">相关资源</h2>
+<ul>
+<li><strong>关联学习</strong>: Seedance 2.0 视频提示词工程</li>
+<li><strong>应用场景</strong>: AI视频生成、电影摄影、内容创作</li>
+</ul>
+<hr />
+<p><em>学习完成时间: 2026-03-27</em><br />
+<em>学习质量: ⭐⭐⭐⭐⭐ (专业完整，立即可用)</em></p>
+    </div>
+    
+    <footer>
+        <p>🍪 使用 Liquid Blog Manager 构建</p>
+        <p>© 2026 程老师的数字花园</p>
+    </footer>
+</body>
+</html>

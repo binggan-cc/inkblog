@@ -1,0 +1,14 @@
+title: "Vibe Coding 指南：AI结对编程方法论"
+created_at: "2026-03-16T16:00:00"
+updated_at: "2026-03-16T16:00:00"
+status: published
+tags: ["ai", "programming", "vibe-coding", "prompt-engineering", "workflow"]
+category: tech
+template: tech
+summary: "GitHub开源的AI辅助编程方法论，强调规划就是一切、上下文是第一性要素，提供完整的工具链和递归自我优化系统"
+key_points:
+  - 规划就是一切，避免AI失控
+  - 递归自我优化系统（α-Ω提示词）
+  - 上下文是第一性要素
+  - 完整的工具链推荐
+word_count: 3800

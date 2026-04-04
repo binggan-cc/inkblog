@@ -1,0 +1,15 @@
+title: "Claude Code 的 15 个隐藏能力"
+created_at: "2026-04-04T14:30:00"
+updated_at: "2026-04-04T14:30:00"
+status: published
+tags: ["ai", "claude", "claude-code", "dev-tools", "productivity"]
+category: tech
+template: tech
+summary: "Claude Code创始人Boris Cherny分享的15个隐藏能力，构建AI编程工作环境的四层工程化体系：验证、隔离、分叉、调度"
+key_points:
+  - 验证闭环：--chrome / Desktop 预览
+  - 自动化循环：/loop + Hooks
+  - 上下文保护：/btw / /branch
+  - 并行隔离：worktree + 自定义agent
+  - 跨设备调度：--teleport / remote-control
+word_count: 8500

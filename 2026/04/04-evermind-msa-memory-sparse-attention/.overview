@@ -1,0 +1,15 @@
+title: "MSA：支持100M Token长上下文的记忆框架"
+created_at: "2026-04-04T17:30:00"
+updated_at: "2026-04-04T17:30:00"
+status: published
+tags: ["ai", "llm", "long-context", "attention", "memory", "github"]
+category: tech
+template: tech
+summary: "EverMind-AI开源的MSA框架，通过记忆稀疏注意力机制实现100M token长上下文处理，端到端可训练，在9个长上下文QA数据集上超越SOTA RAG方案"
+key_points:
+  - 支持100M token上下文
+  - 记忆稀疏注意力机制
+  - 端到端可训练
+  - 双A800 GPU可达100M吞吐
+  - 在9个数据集上超越RAG
+word_count: 2800

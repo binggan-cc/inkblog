@@ -1,0 +1,14 @@
+title: "Seedance 2.0 视频提示词工程"
+created_at: "2026-03-26T10:00:00"
+updated_at: "2026-03-26T10:00:00"
+status: published
+tags: ["ai", "video", "seedance", "prompt-engineering", "claude-code"]
+category: tech
+template: tech
+summary: "字节跳动Seedance 2.0 AI视频生成平台的提示词工程技巧，包括时间戳分镜法、镜头语言词汇库、风格调色板等专业视频提示词设计方法"
+key_points:
+  - 10种核心提示词生成能力
+  - 时间戳分镜法（15秒视频）
+  - 镜头语言专业词汇库
+  - 多模态@引用系统
+word_count: 5200

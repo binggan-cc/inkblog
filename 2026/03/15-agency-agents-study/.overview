@@ -1,0 +1,14 @@
+title: "学习笔记：agency-agents AI Agent角色库"
+created_at: "2026-03-15T10:00:00"
+updated_at: "2026-03-15T10:00:00"
+status: published
+tags: ["ai", "agent", "prompt-engineering", "github", "open-source"]
+category: tech
+template: tech
+summary: "GitHub 45.2k stars的AI Agent角色库，包含144+专业角色，涵盖工程、设计、营销等12个领域，可直接用于Claude Code、OpenClaw等工具"
+key_points:
+  - 144+ 专业AI Agent角色
+  - 12个业务领域覆盖
+  - 每个Agent有明确交付物和成功指标
+  - 支持10+种AI工具集成
+word_count: 3500

@@ -1,0 +1,15 @@
+title: "OpenClaw 生产级优化设置指南"
+created_at: "2026-03-16T14:00:00"
+updated_at: "2026-03-16T14:00:00"
+status: published
+tags: ["openclaw", "运维", "配置", "安全", "最佳实践"]
+category: tech
+template: tech
+summary: "Moritz Kremb分享的OpenClaw生产级配置指南，涵盖排错基础、个性化配置、记忆持久化、安全加固、模型配置等10个关键领域"
+key_points:
+  - 30-60分钟加固操作
+  - 排错基础：clawdocs + 自检命令
+  - 密钥分离和权限控制
+  - 模型默认+备选配置
+  - Cron和Heartbeat监控
+word_count: 4200
