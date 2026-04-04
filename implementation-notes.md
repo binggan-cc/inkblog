@@ -117,3 +117,107 @@ l1_meta = article.l1.get("meta", article.l1) if isinstance(article.l1, dict) els
 - Task 7: Implement `AnalyzeSkill` and `WikiLinkResult`
 - Task 8: Implement `SearchSkill`
 - Fix Issue 1 (`IndexManager` l1 field access) when implementing `PublishSkill` (Task 6.2)
+
+---
+
+## Checkpoint 9: Skills 层验证
+
+**Date:** 2025  
+**Status:** ✅ All tests pass (192/192)
+
+---
+
+## Test Results
+
+```
+192 passed in 0.35s
+```
+
+All tests across all test files pass without issues:
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `tests/test_analyze.py` | 26 | ✅ All pass |
+| `tests/test_article_manager.py` | 36 | ✅ All pass |
+| `tests/test_index_manager.py` | 22 | ✅ All pass |
+| `tests/test_markdown.py` | 18 | ✅ All pass |
+| `tests/test_publish.py` | 22 | ✅ All pass |
+| `tests/test_publish_history.py` | 12 | ✅ All pass |
+| `tests/test_search.py` | 37 | ✅ All pass |
+| `tests/test_slug_resolver.py` | 19 | ✅ All pass |
+
+---
+
+## Newly Implemented Components (Tasks 5–8)
+
+The following components were added since Checkpoint 4:
+
+- **`ink_core/core/publish_history.py`** — `PublishHistoryManager` with record/get_history/get_latest
+- **`ink_core/skills/publish.py`** — `BlogFileAdapter`, `NewsletterFileAdapter`, `MastodonDraftAdapter`, `PublishSkill`
+- **`ink_core/skills/analyze.py`** — `AnalyzeSkill`, `WikiLinkResult`, `resolve_wiki_link()`
+- **`ink_core/skills/search.py`** — `SearchSkill` with layered search, sorting, tag filtering, fulltext mode
+
+---
+
+## Design Decisions & Default Behaviors (Tasks 5–8)
+
+### 7. `IndexManager.update_timeline()` l1 field access — resolved
+
+**Resolution:** The `IndexManager` was updated to use `article.l1.get("meta", article.l1)` for backward compatibility. This resolves Issue 1 from Checkpoint 4. Timeline entries now correctly populate `title`, `status`, `tags`, and `updated_at` from real `Article` objects.
+
+### 8. `PublishSkill` status gate reads `index.md` frontmatter only
+
+**Decision:** `PublishSkill` reads `status` exclusively from `index.md` frontmatter, not from `.overview`.  
+**Rationale:** Matches design spec — `index.md` is the Source of Truth. `.overview.status` is a derived field.
+
+### 9. `MastodonDraftAdapter` returns `draft_saved` (not `success`)
+
+**Decision:** The Mastodon adapter always returns `status="draft_saved"` since Phase 1 does not call the real API.  
+**Rationale:** `draft_saved` counts as a "success" for the purpose of the publish gate (at least one channel succeeded), consistent with Requirement 3.15.
+
+### 10. `AnalyzeSkill` in-link count falls back to 0 when graph missing
+
+**Decision:** If `_index/graph.json` does not exist or does not contain the article as a target, `in_link_count` returns 0.  
+**Rationale:** Matches design spec — "若图谱未建立则返回 0". Graceful degradation without error.
+
+### 11. `SearchSkill` tokenization handles CJK characters
+
+**Decision:** CJK characters are treated as individual tokens (each character is a separate token). ASCII words are split on whitespace/punctuation.  
+**Rationale:** CJK languages have no word boundaries; character-level tokenization is the simplest correct approach for Phase 1.
+
+### 12. `SearchSkill` empty query returns failure (not empty results)
+
+**Decision:** An empty query string returns `SkillResult(success=False, ...)` rather than an empty result list.  
+**Rationale:** An empty query is a user error, not a valid search with no results. Distinct from a valid query that matches nothing.
+
+### 13. Optional property-based tests deferred
+
+The following optional property-based tests (marked `*` in tasks.md) remain unimplemented:
+
+- Property 13: Publish status gate (hypothesis) — Task 6.3
+- Property 14: Multi-channel output completeness (hypothesis) — Task 6.4
+- Property 15: Publish record completeness (hypothesis) — Task 5.2
+- Property 16: Publish success side effects (hypothesis) — Task 6.5
+- Property 17: Article analysis output completeness (hypothesis) — Task 7.3
+- Property 18: Wiki Link resolution completeness (hypothesis) — Task 7.4
+- Property 19: Search sort stability (hypothesis) — Task 8.3
+- Property 20: Search excludes archived (hypothesis) — Task 8.4
+- Property 21: Layered search strategy (hypothesis) — Task 8.2
+- Property 22: Search tag filter (hypothesis) — Task 8.5
+
+These are deferred per the spec's `*` (optional) marking.
+
+---
+
+## Open Issues
+
+No blocking issues. All previously noted issues from Checkpoint 4 have been resolved.
+
+---
+
+## Next Steps (Task 10+)
+
+- Task 10: Implement `GitManager`
+- Task 11: Implement `SkillFileLoader` and `SkillRegistry`
+- Task 12: Implement CLI layer (`NLParser`, `IntentRouter`, `CommandExecutor`, `InkCLI`)
+- Task 13: Integration wiring and end-to-end tests

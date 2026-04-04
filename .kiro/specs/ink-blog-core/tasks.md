@@ -214,7 +214,7 @@
     - **Property 22: 搜索标签过滤**
     - **Validates: Requirements 5.6**
 
-- [~] 9. Checkpoint - Skills 层验证
+- [x] 9. Checkpoint - Skills 层验证
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
 - [~] 10. Git 集成
