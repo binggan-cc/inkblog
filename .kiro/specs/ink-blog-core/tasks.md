@@ -142,7 +142,7 @@
     - 每个 adapter 的 `publish()` 返回 `ChannelPublishRecord`
     - _Requirements: 3.3, 3.4, 3.9_
 
-  - [ ] 6.2 实现 `PublishSkill`（`ink_core/skills/publish.py`）
+  - [x] 6.2 实现 `PublishSkill`（`ink_core/skills/publish.py`）
     - 状态门控：读取 `index.md` frontmatter 中的 `status`（不读 .overview），`status != ready` 时拒绝并返回当前值
     - 调用各渠道 adapter，分渠道收集 ChannelPublishRecord
     - 至少一个渠道成功时：更新 `index.md` status=published、写入发布时间戳；调用 `ArticleManager.update_layers()` 同步刷新 `.overview`；调用 `IndexManager.update_timeline()` 更新 `_index/timeline.json`
