@@ -47,7 +47,7 @@
     - _Requirements: 1.8, 6.8_
 
 - [ ] 3. 文件系统层：三层上下文
-  - [~] 3.0 实现 Markdown/frontmatter 解析工具（`ink_core/fs/markdown.py`）
+  - [x] 3.0 实现 Markdown/frontmatter 解析工具（`ink_core/fs/markdown.py`）
     - `parse_frontmatter(content: str) -> dict`：从 Markdown 文本提取 YAML frontmatter
     - `dump_frontmatter(meta: dict, body: str) -> str`：将 frontmatter dict + body 序列化回 Markdown
     - `parse_overview(content: str) -> dict`：解析 `.overview` 文件（YAML frontmatter + Markdown 章节）为结构化 dict
