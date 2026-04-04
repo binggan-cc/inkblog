@@ -239,8 +239,8 @@
     - 测试 `ink init` 初始化仓库、非仓库目录提示、sessions 不纳入 Git
     - _Requirements: 6.1, 6.6, 6.9_
 
-- [~] 11. Skill 文件加载器与注册表
-  - [ ] 11.1 实现 `SkillFileLoader`（`ink_core/skills/loader.py`）
+- [-] 11. Skill 文件加载器与注册表
+  - [x] 11.1 实现 `SkillFileLoader`（`ink_core/skills/loader.py`）
     - `load(path)` → 解析 `.md` 文件 frontmatter + 章节内容，缺少必填字段（skill、version、context_requirement）时跳过 + 警告（含文件路径和缺失字段名）
     - `parse_frontmatter(content)` → 提取 YAML frontmatter
     - `parse_sections(content)` → 提取"输入"和"执行流程"章节
