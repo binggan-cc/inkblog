@@ -217,8 +217,8 @@
 - [x] 9. Checkpoint - Skills 层验证
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
-- [~] 10. Git 集成
-  - [ ] 10.1 实现 `GitManager`（`ink_core/git/manager.py`）
+- [-] 10. Git 集成
+  - [x] 10.1 实现 `GitManager`（`ink_core/git/manager.py`）
     - `init_repo()` → 初始化 Git 仓库 + 初始提交
     - `is_repo()` → 检测当前目录是否为 Git 仓库
     - `auto_commit(paths, message)` → 单路径 add + commit（供内部使用）
