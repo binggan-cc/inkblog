@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Auto Git Commit After Task",
+  "description": "每当一个 spec task 完成后，自动执行 git add 和 git commit 提交变更",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "git add -A && git commit -m \"chore: auto commit after task completion\"",
+    "timeout": 60
+  },
+  "workspaceFolderName": "inkblog",
+  "shortName": "auto-git-commit-on-task"
+}
