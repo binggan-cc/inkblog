@@ -163,7 +163,7 @@
     - **Property 16: 发布成功副作用**
     - **Validates: Requirements 3.7, 3.11, 3.15**
 
-- [-] 7. Skills 层：Analyze
+- [x] 7. Skills 层：Analyze
   - [x] 7.1 实现 `AnalyzeSkill`（`ink_core/skills/analyze.py`）
     - 单篇分析：输出 word_count、reading_time、tags、related_count（出链数）、in_link_count（入链数，依赖 `_index/graph.json` 或全库扫描；若图谱未建立则返回 0）
     - 全库分析（`--all`）：输出 Article 总数、标签总数、最近更新时间、孤立文章数量
