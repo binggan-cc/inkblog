@@ -267,13 +267,13 @@
     - 定义 `ValidationIssue` dataclass（level, path, message）和 `Validator` 类接口（validate_article、validate_indexes、validate_skills），Phase 1 返回空列表
     - 预留接口供后续 `ink validate` 和 `ink rebuild --check` 使用，Phase 1 不实现具体校验逻辑
 
-- [~] 12. CLI 层：解析器、路由与执行事务
-  - [ ] 12.1 实现 `NLParser`（`ink_core/cli/intent.py`）
+- [-] 12. CLI 层：解析器、路由与执行事务
+  - [x] 12.1 实现 `NLParser`（`ink_core/cli/intent.py`）
     - 规则匹配优先：正则模式匹配常见意图（发布、搜索、创建等）
     - `parse(text: str) -> ParseResult`：匹配成功返回 `ParseResult(intent=Intent(...), error=None)`；无法识别返回 `ParseResult(intent=None, error="...", candidates=[...])`，不返回 None
     - _Requirements: 1.1, 1.2, 1.4_
 
-  - [ ] 12.2 实现各内置命令（`ink_core/cli/builtin.py`）
+  - [~] 12.2 实现各内置命令（`ink_core/cli/builtin.py`）
     - `BuiltinCommand` ABC 已在 1.2 定义，此处实现四个具体命令
     - `NewCommand`：调用 ArticleManager.create，返回 SkillResult
     - `InitCommand`：调用 GitManager.init_repo，返回 SkillResult
@@ -281,20 +281,20 @@
     - `RebuildCommand`：遍历所有 Article，调用 L0/L1Generator 全量重建 .abstract/.overview；再调用 IndexManager 重建 `_index/timeline.json`；可选重建 `_index/graph.json`（需先执行 analyze）；返回 SkillResult
     - _Requirements: 1.10, 1.11, 6.1, 7.6, 2.10_
 
-  - [ ] 12.3 实现 `IntentRouter`（`ink_core/cli/intent.py`）
+  - [~] 12.3 实现 `IntentRouter`（`ink_core/cli/intent.py`）
     - `resolve(intent) -> RouteResult`：先检查 BuiltinCommand 表，再查 SkillRegistry，两者不重叠
     - 匹配到 BuiltinCommand → RouteResult.target = BuiltinCommand 实例
     - 匹配到 Skill → RouteResult.target = Skill 实例
     - 未匹配 → RouteResult.target = None，error 含失败原因，candidates 含可用列表
     - _Requirements: 1.3, 1.4_
 
-  - [ ] 12.4 实现 `CommandExecutor`（`ink_core/core/executor.py`）
+  - [~] 12.4 实现 `CommandExecutor`（`ink_core/core/executor.py`）
     - `execute(intent) -> int`：创建 ExecutionContext（含 session_id）→ 调用 IntentRouter.resolve() → 调用 BuiltinCommand.run() 或 Skill.execute() → 累积 changed_files（含自愈产生的文件）→ 调用 SessionLogger.log() → 条件触发 GitManager.aggregate_commit() → 返回退出码
     - Git commit 触发规则：仅 `new`、`init`、`rebuild`、`publish` 及其他显式写命令触发 `aggregate_commit()`；`search`、`analyze` 即使发生自愈写入，也仅记录到 Session，不自动 commit
     - 统一格式化成功输出（操作名称、目标、耗时）和失败输出（错误类型、位置、建议修复步骤）
     - _Requirements: 1.6, 1.7, 6.8_
 
-  - [ ] 12.5 实现 `InkCLI`（`ink_core/cli/parser.py`）
+  - [~] 12.5 实现 `InkCLI`（`ink_core/cli/parser.py`）
     - 统一 argparse 子命令 + NLP 自然语言入口
     - 子命令：init、new、rebuild、publish、analyze、search、skills
     - 无子命令时走 NLParser 路由
