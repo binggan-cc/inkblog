@@ -31,7 +31,7 @@
     - _Requirements: 1.2_
 
 - [ ] 2. 配置与会话服务
-  - [~] 2.1 实现 `InkConfig`（`ink_core/core/config.py`）
+  - [x] 2.1 实现 `InkConfig`（`ink_core/core/config.py`）
     - 实现 `load()`、`save()`、`get()` 方法，支持 `~/.ink/config.yaml` 读写
     - 配置文件不存在时使用默认配置
     - _Requirements: 1.8_
