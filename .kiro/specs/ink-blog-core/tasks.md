@@ -77,7 +77,7 @@
     - `check_conflict(date, slug)` → 检测目标路径是否已存在
     - _Requirements: 1.11, 1.12, 1.13_
 
-  - [~] 3.6 实现 `ArticleManager`（`ink_core/fs/article.py`）
+  - [x] 3.6 实现 `ArticleManager`（`ink_core/fs/article.py`）
     - 定义 `ArticleReadResult` dataclass（article: Article, changed_files: list[Path]），作为 read/read_by_id 的返回类型，将自愈产生的变更文件带回给调用方
     - `create(title, *, date, slug, tags, template)` → 创建 `YYYY/MM/DD-slug/` 目录，初始化 index.md、.abstract、.overview、assets/；slug 冲突时抛出 PathConflictError
     - `read(path: Path) -> ArticleReadResult` → 读取 Article；自愈逻辑：检测 .abstract/.overview 缺失则自动重建，重建文件列入 `ArticleReadResult.changed_files`；调用方（CommandExecutor）负责判断是否将这些文件纳入 Git commit
@@ -313,7 +313,7 @@
     - **Property 3: 执行输出格式完整性**
     - **Validates: Requirements 1.6, 1.7**
 
-- [ ] 13. 集成联调：端到端流程
+- [~] 13. 集成联调：端到端流程
   - [ ] 13.1 将所有组件在 `InkCLI.run()` 中串联
     - 确保 `ink` 入口点可通过 `pip install -e .` 安装后直接使用
     - ArticleManager 操作后自动调用 IndexManager 更新索引
@@ -344,7 +344,7 @@
     - 单次命令多文件变更 → 验证恰好一次 commit
     - _Requirements: 6.8_
 
-- [ ] 14. Final checkpoint - 全量测试通过
+- [~] 14. Final checkpoint - 全量测试通过
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
 ## Notes
