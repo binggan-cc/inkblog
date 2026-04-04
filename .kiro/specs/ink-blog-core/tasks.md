@@ -36,7 +36,7 @@
     - 配置文件不存在时使用默认配置
     - _Requirements: 1.8_
 
-  - [~] 2.2 实现 `SessionLogger`（`ink_core/core/session.py`）
+  - [x] 2.2 实现 `SessionLogger`（`ink_core/core/session.py`）
     - 实现 `log(context: ExecutionContext, result: str, duration_ms: int) -> Path`，将操作记录写入 `.ink/sessions/YYYYMMDD-HHMMSS-action.json`
     - `context.target` 可为 Canonical ID、保留值（workspace/all/system）或 None；写入 JSON 时 `changed_files` 从 `list[Path]` 序列化为字符串列表
     - 实现 `recent(n: int = 10) -> list[dict]`，返回最近 N 条记录
