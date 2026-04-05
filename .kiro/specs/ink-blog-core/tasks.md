@@ -370,7 +370,7 @@
     - 实现 `RSSGenerator.generate(articles, output_path, site_config)`：使用 `xml.etree.ElementTree` 生成 Atom feed，包含最近 20 篇已发布文章
     - _Requirements: 8.6_
 
-  - [-] 15.3 实现 `BuildCommand` 并注册到 `InkCLI`（`ink_core/cli/builtin.py` 追加）
+  - [x] 15.3 实现 `BuildCommand` 并注册到 `InkCLI`（`ink_core/cli/builtin.py` 追加）
     - 在 `ink_core/cli/builtin.py` 末尾追加 `BuildCommand(BuiltinCommand)` 实现：调用 `SiteBuilder.build()`，格式化输出 page_count 和 duration_ms，返回 SkillResult
     - 在 `InkCLI` 的内置命令表中注册 `BuildCommand`，添加 `build` 子命令（支持 `--all` 参数）
     - 确保 `CommandExecutor` 在 `build` 命令完成后触发 `aggregate_commit("build: regenerate static site")`
