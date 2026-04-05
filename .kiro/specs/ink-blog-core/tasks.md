@@ -380,7 +380,7 @@
     - 在 `[project].dependencies` 中添加 `"jinja2>=3.1"`
     - _Requirements: 8.7_
 
-  - [ ]* 15.5 写单元测试：静态站生成
+  - [x]* 15.5 写单元测试：静态站生成
     - 测试 `BuildCommand` 注册与 `--all` 参数传递（8.1, 8.3）
     - 测试 `TemplateRenderer` 自定义模板优先与内置 fallback（8.8, 8.9）
     - 测试 `SiteBuilder` 输出目录默认值与 config 覆盖（8.10）

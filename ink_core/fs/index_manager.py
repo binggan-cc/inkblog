@@ -40,13 +40,16 @@ class IndexManager:
 
         # Build the new entry from article.l1 (parsed .overview frontmatter)
         l1 = article.l1 or {}
+        # article.l1 is the result of parse_overview(): {"meta": {...}, "summary": ..., "key_points": ...}
+        # Extract the nested meta dict for backward compatibility
+        l1_meta = l1.get("meta", l1) if isinstance(l1, dict) else {}
         new_entry = {
             "path": article.canonical_id,
-            "title": l1.get("title", ""),
+            "title": l1_meta.get("title", ""),
             "date": article.date,
-            "status": l1.get("status", "draft"),
-            "tags": l1.get("tags", []),
-            "updated_at": l1.get("updated_at", ""),
+            "status": l1_meta.get("status", "draft"),
+            "tags": l1_meta.get("tags", []),
+            "updated_at": l1_meta.get("updated_at", ""),
         }
 
         # Upsert: replace existing entry with same canonical_id, or append
