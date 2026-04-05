@@ -209,13 +209,17 @@ class PublishSkill(Skill):
         """Execute the publish skill.
 
         Args:
-            target: Canonical ID of the article to publish.
+            target: Canonical ID of the article to publish, or None when --all.
             params: Must contain 'channels' (list[str]) and optionally
-                    'session_id' (str).
+                    'session_id' (str) and 'all' (bool).
 
         Returns:
             SkillResult with success/failure details.
         """
+        # --all: publish every article with status=ready
+        if params.get("all"):
+            return self._execute_all(params)
+
         if not target:
             return SkillResult(
                 success=False,
@@ -340,3 +344,48 @@ class PublishSkill(Skill):
                 },
                 changed_files=changed_files,
             )
+
+    # ------------------------------------------------------------------
+    # Batch publish
+    # ------------------------------------------------------------------
+
+    def _execute_all(self, params: dict) -> SkillResult:
+        """Publish all articles with status=ready."""
+        articles = self._article_manager.list_all()
+        ready = []
+        for a in articles:
+            index_path = a.path / "index.md"
+            try:
+                raw = index_path.read_text(encoding="utf-8")
+                meta, _ = parse_frontmatter(raw)
+                if meta.get("status") == "ready":
+                    ready.append(a.canonical_id)
+            except Exception:
+                continue
+
+        if not ready:
+            return SkillResult(
+                success=True,
+                message="No articles with status=ready found.",
+                data={"published": [], "failed": []},
+            )
+
+        published, failed = [], []
+        all_changed: list[Path] = []
+
+        for canonical_id in ready:
+            result = self.execute(canonical_id, {k: v for k, v in params.items() if k != "all"})
+            if result.success:
+                published.append(canonical_id)
+            else:
+                failed.append({"canonical_id": canonical_id, "error": result.message})
+            if result.changed_files:
+                all_changed.extend(result.changed_files)
+
+        msg = f"Batch publish: {len(published)} published, {len(failed)} failed."
+        return SkillResult(
+            success=len(published) > 0,
+            message=msg,
+            data={"published": published, "failed": failed},
+            changed_files=all_changed,
+        )

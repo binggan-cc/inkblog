@@ -1,4 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
 
-ink_core/__pycache__
-ink_core/*/__pycache__
-tests/__pycache__
+# Pytest / Hypothesis
+.pytest_cache/
+.hypothesis/
+
+# Ink sessions (not versioned)
+.ink/sessions/
+
+# macOS
+.DS_Store

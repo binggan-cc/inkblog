@@ -73,9 +73,12 @@ def _intent_from_namespace(ns: argparse.Namespace):
         target = None
 
     elif cmd == "publish":
-        target = ns.target
+        target = getattr(ns, "target", None)
         if ns.channels:
             params["channels"] = [c.strip() for c in ns.channels.split(",")]
+        if getattr(ns, "all", False):
+            params["all"] = True
+            target = None
 
     elif cmd == "analyze":
         target = getattr(ns, "target", None)
@@ -123,7 +126,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 
     # publish
     p_pub = sub.add_parser("publish", help="Publish an article to one or more channels")
-    p_pub.add_argument("target", help="Canonical ID of the article")
+    p_pub_group = p_pub.add_mutually_exclusive_group()
+    p_pub_group.add_argument("target", nargs="?", help="Canonical ID of the article")
+    p_pub_group.add_argument("--all", action="store_true", help="Publish all ready articles")
     p_pub.add_argument("--channels", help="Comma-separated channel list (blog,newsletter,mastodon)")
 
     # analyze
