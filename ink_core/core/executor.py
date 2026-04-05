@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 # Commands that trigger an aggregate Git commit after execution
-_WRITE_COMMANDS = {"new", "init", "rebuild", "publish"}
+_WRITE_COMMANDS = {"new", "init", "rebuild", "publish", "build"}
 
 
 @dataclass
@@ -204,6 +204,8 @@ class CommandExecutor:
             return GitManager.commit_message_publish(slug, channels)
         if action in ("rebuild", "init"):
             return f"chore: {action}"
+        if action == "build":
+            return "build: regenerate static site"
         return f"update: {slug}"
 
     @staticmethod

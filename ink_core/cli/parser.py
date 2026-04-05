@@ -14,7 +14,7 @@ def _workspace_root() -> Path:
 
 def _build_executor(workspace_root: Path):
     """Wire up all components and return a CommandExecutor."""
-    from ink_core.cli.builtin import InitCommand, NewCommand, RebuildCommand, SkillsListCommand
+    from ink_core.cli.builtin import BuildCommand, InitCommand, NewCommand, RebuildCommand, SkillsListCommand
     from ink_core.cli.intent import IntentRouter
     from ink_core.core.executor import CommandExecutor
     from ink_core.core.session import SessionLogger
@@ -34,6 +34,7 @@ def _build_executor(workspace_root: Path):
         "init": InitCommand(workspace_root),
         "rebuild": RebuildCommand(workspace_root),
         "skills": SkillsListCommand(registry),
+        "build": BuildCommand(workspace_root),
     }
 
     router = IntentRouter(builtins=builtins, skill_registry=registry)
@@ -97,6 +98,11 @@ def _intent_from_namespace(ns: argparse.Namespace):
         target = None
         params["subcommand"] = ns.subcommand if hasattr(ns, "subcommand") else "list"
 
+    elif cmd == "build":
+        target = None
+        if getattr(ns, "all", False):
+            params["all"] = True
+
     else:
         target = None
 
@@ -147,6 +153,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p_skills = sub.add_parser("skills", help="Manage skills")
     skills_sub = p_skills.add_subparsers(dest="subcommand")
     skills_sub.add_parser("list", help="List all registered skills")
+
+    # build
+    p_build = sub.add_parser("build", help="Generate static HTML site")
+    p_build.add_argument("--all", action="store_true", help="Include all articles (not just published)")
 
     return parser
 

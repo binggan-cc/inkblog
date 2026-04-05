@@ -205,3 +205,64 @@ class RebuildCommand(BuiltinCommand):
             data={"rebuilt": len(articles)},
             changed_files=all_changed,
         )
+
+
+# ---------------------------------------------------------------------------
+# BuildCommand
+# ---------------------------------------------------------------------------
+
+class BuildCommand(BuiltinCommand):
+    """Generate a static HTML site from the ink workspace (ink build)."""
+
+    def __init__(self, workspace_root: Path) -> None:
+        self._workspace_root = workspace_root
+
+    @property
+    def name(self) -> str:
+        return "build"
+
+    def run(self, target: str | None, params: dict) -> SkillResult:
+        from ink_core.core.config import InkConfig
+        from ink_core.fs.article import ArticleManager
+        from ink_core.fs.index_manager import IndexManager
+        from ink_core.site.builder import SiteBuilder
+
+        include_all = bool(params.get("all", False))
+
+        config = InkConfig()
+        article_manager = ArticleManager(self._workspace_root)
+        index_manager = IndexManager(self._workspace_root)
+
+        builder = SiteBuilder(
+            workspace_root=self._workspace_root,
+            config=config,
+            article_manager=article_manager,
+            index_manager=index_manager,
+        )
+
+        try:
+            result = builder.build(include_all=include_all)
+        except Exception as exc:
+            return SkillResult(
+                success=False,
+                message=f"Build failed: {exc}",
+            )
+
+        # Collect generated files for Git commit
+        output_dir = result.output_dir
+        changed_files = list(output_dir.rglob("*")) if output_dir.exists() else []
+        changed_files = [f for f in changed_files if f.is_file()]
+
+        return SkillResult(
+            success=True,
+            message=(
+                f"Built {result.page_count} page(s) in {result.duration_ms}ms "
+                f"→ {result.output_dir}"
+            ),
+            data={
+                "page_count": result.page_count,
+                "duration_ms": result.duration_ms,
+                "output_dir": str(result.output_dir),
+            },
+            changed_files=changed_files,
+        )

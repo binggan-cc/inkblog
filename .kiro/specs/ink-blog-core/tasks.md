@@ -357,7 +357,7 @@
 - 设计文档使用 Python，所有实现代码使用 Python
 
 - [ ] 15. 静态站生成
-  - [ ] 15.1 实现 `SiteBuilder` 和 `TemplateRenderer`（`ink_core/site/`）
+  - [x] 15.1 实现 `SiteBuilder` 和 `TemplateRenderer`（`ink_core/site/`）
     - 创建 `ink_core/site/__init__.py`、`ink_core/site/builder.py`、`ink_core/site/renderer.py`
     - 实现 `BuildResult` dataclass（page_count, duration_ms, output_dir）
     - 实现 `SiteBuilder.build(*, include_all: bool = False) -> BuildResult`：读取 `_index/timeline.json`，过滤文章，遍历生成 HTML，调用 `TemplateRenderer` 和 `RSSGenerator`，返回 BuildResult
@@ -365,12 +365,12 @@
     - 实现 `TemplateRenderer`：优先加载 `_templates/site/` 下的用户模板，缺失时使用内置默认模板字符串（Python 字符串常量）；实现 `render_article(article, output_path)` 和 `render_index(articles, output_path)`
     - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.7, 8.8, 8.9, 8.10_
 
-  - [ ] 15.2 实现 `RSSGenerator`（`ink_core/site/rss.py`）
+  - [-] 15.2 实现 `RSSGenerator`（`ink_core/site/rss.py`）
     - 创建 `ink_core/site/rss.py`
     - 实现 `RSSGenerator.generate(articles, output_path, site_config)`：使用 `xml.etree.ElementTree` 生成 Atom feed，包含最近 20 篇已发布文章
     - _Requirements: 8.6_
 
-  - [ ] 15.3 实现 `BuildCommand` 并注册到 `InkCLI`（`ink_core/cli/builtin.py` 追加）
+  - [-] 15.3 实现 `BuildCommand` 并注册到 `InkCLI`（`ink_core/cli/builtin.py` 追加）
     - 在 `ink_core/cli/builtin.py` 末尾追加 `BuildCommand(BuiltinCommand)` 实现：调用 `SiteBuilder.build()`，格式化输出 page_count 和 duration_ms，返回 SkillResult
     - 在 `InkCLI` 的内置命令表中注册 `BuildCommand`，添加 `build` 子命令（支持 `--all` 参数）
     - 确保 `CommandExecutor` 在 `build` 命令完成后触发 `aggregate_commit("build: regenerate static site")`
