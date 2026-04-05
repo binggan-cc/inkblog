@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Blog</title>
+  <id>urn:ink-blog</id>
+  <updated>2026-04-05T01:49:46Z</updated>
+  <author>
+    <name>Anonymous</name>
+  </author>
+  <entry>
+    <title>我的第一篇文章</title>
+    <id>/2026/04/05-untitled/</id>
+    <updated>2026-04-05T00:59:49Z</updated>
+    <published>2026-04-05T00:59:49Z</published>
+    <link rel="alternate" href="/2026/04/05-untitled/" />
+    <summary>创建于 2026-04-05</summary>
+    <category term="ai" />
+    <category term="python" />
+  </entry>
+  <entry>
+    <title>Claude Code 的 15 个隐藏能力</title>
+    <id>/2026/04/04-claude-code-15-hidden-features/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/04/04-claude-code-15-hidden-features/" />
+    <summary>来源：Boris Cherny (Claude Code创始人) 2025年3月30日 核心观点：Claude Code的上限越来越不由模型决定，而是由你的工作环境决定</summary>
+  </entry>
+  <entry>
+    <title>MSA：支持100M Token长上下文的记忆稀疏注意力框架</title>
+    <id>/2026/04/04-evermind-msa-memory-sparse-attention/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/04/04-evermind-msa-memory-sparse-attention/" />
+    <summary>项目: EverMind-AI/MSA 全称: Memory Sparse Attention（记忆稀疏注意力） GitHub: https://github.com/EverMind-AI/MSA 论文: arXiv:2603.23516 学习时间: 2026-04-04</summary>
+  </entry>
+  <entry>
+    <title>AgentHub: 多 Agent 协作平台的从 0 到 1</title>
+    <id>/2026/04/02-agenthub-multi-agent-platform/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/04/02-agenthub-multi-agent-platform/" />
+    <summary>创建日期: 2026-04-02 作者: 程老师 标签: [multi-agent, collaboration, ai-architecture, mvp]</summary>
+  </entry>
+  <entry>
+    <title>中国AI生态深度观察</title>
+    <id>/2026/03/27-china-ai-ecosystem/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/27-china-ai-ecosystem/" />
+    <summary>来源: José Maria Macedo (Delphi Labs 联合创始人) 标题: What I Learned from Two Weeks Inside China's AI Ecosystem 发布时间: 2026年3月26日 学习时间: 2026-03-27 文章长度: 约9,300字</summary>
+  </entry>
+  <entry>
+    <title>OpenCLI：多平台浏览器自动化方案</title>
+    <id>/2026/03/27-opencli-skill/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/27-opencli-skill/" />
+    <summary>来源: 微信公众号「网罗灯下黑」- 网黑哥 项目: OpenCLI + OpenCLI Skill for OpenClaw 学习时间: 2026-03-27</summary>
+  </entry>
+  <entry>
+    <title>粒子日记本：AI语音对话产品案例</title>
+    <id>/2026/03/27-particle-diary-voice-ai/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/27-particle-diary-voice-ai/" />
+    <summary>来源: 小红书 (xiaohongshu.com) 作者: AI产品经理 发布时间: 2025-12-06 学习时间: 2026-03-27</summary>
+  </entry>
+  <entry>
+    <title>镜头运动 × 场景预设速查表</title>
+    <id>/2026/03/27-shot-motion-presets/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/27-shot-motion-presets/" />
+    <summary>文档类型: AI视频生成/电影摄影参考 学习时间: 2026-03-27</summary>
+  </entry>
+  <entry>
+    <title>Seedance 2.0 视频提示词工程</title>
+    <id>/2026/03/26-seedance-prompt-skill/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/26-seedance-prompt-skill/" />
+    <summary>资源: https://github.com/songguoxs/seedance-prompt-skill 平台: 字节跳动 Seedance 2.0（即梦） 学习时间: 2026-03-26</summary>
+  </entry>
+  <entry>
+    <title>OpenClaw 生产级优化设置指南</title>
+    <id>/2026/03/16-openclaw-optimization-guide/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/16-openclaw-optimization-guide/" />
+    <summary>来源: Datawhale 微信公众号文章 作者: Moritz Kremb（AI 独立开发者） 核心观点: "装 OpenClaw 很简单，让它稳定运行才是大多数人卡住的地方" 学习时间: 2026-03-16</summary>
+  </entry>
+  <entry>
+    <title>Vibe Coding 指南：AI结对编程方法论</title>
+    <id>/2026/03/16-vibe-coding-guide/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/16-vibe-coding-guide/" />
+    <summary>资源: https://github.com/2025Emma/vibe-coding-cn 作者: 2025Emma / tukuaiai 学习时间: 2026-03-16</summary>
+  </entry>
+  <entry>
+    <title>学习笔记：agency-agents AI Agent角色库</title>
+    <id>/2026/03/15-agency-agents-study/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2026/03/15-agency-agents-study/" />
+    <summary>资源: https://github.com/msitarzewski/agency-agents 作者: msitarzewski Stars: 45.2k | Forks: 6.8k 学习时间: 2026-03-15</summary>
+  </entry>
+  <entry>
+    <title>Liquid Blog - Skills + Markdown 博客系统</title>
+    <id>/2025/03/20-liquid-blog/</id>
+    <updated>2026-04-05T01:30:00Z</updated>
+    <published>2026-04-05T01:30:00Z</published>
+    <link rel="alternate" href="/2025/03/20-liquid-blog/" />
+    <summary>🌊 像水一样流动的博客系统，意图驱动的创作体验</summary>
+  </entry>
+</feed>

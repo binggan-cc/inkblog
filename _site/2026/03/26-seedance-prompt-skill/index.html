@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seedance 2.0 视频提示词工程 - Blog</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            background: #fafafa;
+        }
+        nav { margin-bottom: 2rem; }
+        nav a { color: #3498db; text-decoration: none; font-size: 0.9rem; }
+        nav a:hover { text-decoration: underline; }
+        .article-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .article-header h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: #999;
+        }
+        .tag {
+            background: #f0f4f8;
+            color: #5a6c7d;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .content h1 { font-size: 1.8rem; margin: 2rem 0 1rem; color: #2c3e50; }
+        .content h2 { font-size: 1.4rem; margin: 2rem 0 0.8rem; color: #2c3e50; padding-bottom: 0.3rem; border-bottom: 1px solid #eee; }
+        .content h3 { font-size: 1.2rem; margin: 1.5rem 0 0.6rem; color: #34495e; }
+        .content h4 { font-size: 1.05rem; margin: 1.2rem 0 0.5rem; color: #34495e; }
+        .content p { margin-bottom: 1rem; }
+        .content ul, .content ol { margin: 0.5rem 0 1rem 1.5rem; }
+        .content li { margin-bottom: 0.3rem; }
+        .content blockquote {
+            border-left: 4px solid #3498db;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            color: #555;
+            border-radius: 0 4px 4px 0;
+        }
+        .content pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .content code {
+            background: #f0f0f0;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-size: 0.9em;
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+        }
+        .content pre code { background: none; padding: 0; color: inherit; }
+        .content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+        .content th, .content td { border: 1px solid #ddd; padding: 0.5rem 0.75rem; text-align: left; }
+        .content th { background: #f5f5f5; font-weight: 600; }
+        .content tr:nth-child(even) { background: #fafafa; }
+        .content hr { border: none; border-top: 1px solid #e0e0e0; margin: 2rem 0; }
+        .content a { color: #3498db; text-decoration: none; }
+        .content a:hover { text-decoration: underline; }
+        .content strong { font-weight: 600; }
+        .content img { max-width: 100%; border-radius: 6px; margin: 0.5rem 0; }
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            color: #999;
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <nav><a href="../../../index.html">← 返回首页</a></nav>
+    <div class="article-header">
+        <h1>Seedance 2.0 视频提示词工程</h1>
+        <div class="article-meta">
+            <span>📅 2026-03-26</span>
+            
+        </div>
+    </div>
+    <div class="content">
+        
+
+<h1 id="seedance-2-0-视频提示词工程">Seedance 2.0 视频提示词工程</h1>
+
+<blockquote><p><strong>资源</strong>: https://github.com/songguoxs/seedance-prompt-skill  </p></blockquote>
+<blockquote><p><strong>平台</strong>: 字节跳动 Seedance 2.0（即梦）  </p></blockquote>
+<blockquote><p><strong>学习时间</strong>: 2026-03-26</p></blockquote>
+
+<hr>
+
+<h2 id="tl-dr">TL;DR</h2>
+
+<p>这是一个 <strong>Claude Code 自定义 Skill</strong>，专门用于为字节跳动 <strong>Seedance 2.0（即梦）</strong> AI 视频生成平台编写高质量的中文视频提示词。</p>
+
+<p><strong>核心价值</strong>: 将 Claude 转化为专业的 AI 视频提示词工程师，掌握 10 种核心生成能力。</p>
+
+<hr>
+
+<h2 id="一-平台核心参数">一、平台核心参数</h2>
+
+<table>
+<thead><tr><th>维度</th><th>规格</th></tr></thead><tbody>
+<tr><td><strong>图片输入</strong></td><td>jpeg/png/webp/bmp/tiff/gif，≤9张，单张<30MB</td></tr>
+<tr><td><strong>视频输入</strong></td><td>mp4/mov，≤3个，总时长2-15秒，单个<50MB</td></tr>
+<tr><td><strong>音频输入</strong></td><td>mp3/wav，≤3个，总时长≤15秒，单个<15MB</td></tr>
+<tr><td><strong>文件上限</strong></td><td>最多12个文件（图片+视频+音频合计）</td></tr>
+<tr><td><strong>生成时长</strong></td><td>4-15秒，可自由选择</td></tr>
+<tr><td><strong>分辨率</strong></td><td>支持2K输出</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="二--引用系统语法">二、@引用系统语法</h2>
+
+<ul>
+<li><code>@图片1</code> ~ <code>@图片9</code> - 图片引用</li>
+<li><code>@视频1</code> ~ <code>@视频3</code> - 视频引用</li>
+<li><code>@音频1</code> ~ <code>@音频3</code> - 音频引用</li>
+</ul>
+
+<hr>
+
+<h2 id="三-十大核心提示词生成能力">三、十大核心提示词生成能力</h2>
+
+<ol>
+<li><strong>纯文本生成</strong> - 无参考素材，纯文字描述</li>
+<li><strong>一致性控制</strong> - 通过图片保持角色/产品/场景统一</li>
+<li><strong>运镜与动作复刻</strong> - 上传参考视频复刻镜头语言</li>
+<li><strong>创意模板/特效复刻</strong> - 模仿创意转场、广告成片</li>
+<li><strong>剧情创作/补全</strong> - 根据分镜图片生成完整剧情</li>
+<li><strong>视频延长</strong> - 对已有视频平滑延长</li>
+<li><strong>声音控制</strong> - 音色参考、对白生成、音效设计</li>
+<li><strong>一镜到底</strong> - 连贯长镜头不切换</li>
+<li><strong>视频编辑</strong> - 角色替换、剧情颠覆、元素增减</li>
+<li><strong>音乐卡点</strong> - 画面节奏与音乐节拍匹配</li>
+</ol>
+
+<hr>
+
+<h2 id="四-提示词结构模式">四、提示词结构模式</h2>
+
+<h3 id="4-1-基础模式">4.1 基础模式</h3>
+
+<pre><code>
+(主体) + (动作) + (场景) + (镜头) + (风格) + (约束)
+</code></pre>
+
+<h3 id="4-2-时间戳分镜法-15秒视频推荐">4.2 时间戳分镜法（15秒视频推荐）</h3>
+
+<pre><code>
+0-3秒：[画面描述 + 镜头语言]
+4-8秒：[画面描述 + 镜头语言]
+9-12秒：[画面描述 + 镜头语言]
+13-15秒：[画面描述 + 镜头语言]
+</code></pre>
+
+<h3 id="4-3-技术参数指定法">4.3 技术参数指定法</h3>
+
+<pre><code>
+[尺寸]竖屏/横屏 + [画幅比]2.35:1/16:9/9:16 + [帧率]24fps + [时长]Xs + [色调]
+</code></pre>
+
+<hr>
+
+<h2 id="五-镜头语言词汇库">五、镜头语言词汇库</h2>
+
+<table>
+<thead><tr><th>类别</th><th>关键词示例</th></tr></thead><tbody>
+<tr><td><strong>景别</strong></td><td>大远景、远景、全景、中景、近景、特写、大特写</td></tr>
+<tr><td><strong>运镜</strong></td><td>推拉摇移、跟拍、环绕拍摄、航拍、手持跟拍、希区柯克变焦</td></tr>
+<tr><td><strong>角度</strong></td><td>平视、俯拍、仰拍、鸟瞰、鱼眼、第一人称视角</td></tr>
+<tr><td><strong>节奏</strong></td><td>慢动作、快切、延时摄影、一镜到底、升格拍摄</td></tr>
+<tr><td><strong>转场</strong></td><td>遮挡擦镜转场、无缝渐变转场、硬切</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="六-风格词汇库">六、风格词汇库</h2>
+
+<ul>
+<li><strong>影像风格</strong>：好莱坞大片、纪录片、MV风格、广告大片</li>
+<li><strong>色调氛围</strong>：赛博朋克霓虹、红金高饱和、莫兰迪色系</li>
+<li><strong>艺术风格</strong>：写实主义、超现实主义、中国风水墨、3D国漫CG</li>
+<li><strong>光影效果</strong>：丁达尔效应、体积光、黄金时段光线</li>
+</ul>
+
+<hr>
+
+<h2 id="七-超长视频--15秒-处理策略">七、超长视频（>15秒）处理策略</h2>
+
+<p>采用 <strong>分段生成+视频延长拼接</strong>：</p>
+
+<ol>
+<li>先生成第一段视频（≤15秒）</li>
+<li>使用「视频延长」功能，将上一段作为输入接续生成</li>
+<li>每段附带「衔接点」描述，确保画面连贯</li>
+</ol>
+
+<hr>
+
+<h2 id="八-实用示例">八、实用示例</h2>
+
+<h3 id="示例1-纯文本生成---仙侠战斗">示例1：纯文本生成 - 仙侠战斗</h3>
+
+<pre><code>
+15秒仙侠高燃战斗镜头，金红暖色调，0-3秒：低角度特写主角蓝袍衣摆被热浪吹得猎猎飘动，
+双手紧握雷纹巨剑，剑刃赤红电光持续爆闪，地面熔岩翻涌冒泡，远处魔兵嘶吼着冲锋逼近，
+主角低喝"今日，便以这柄剑，镇尔等邪祟！"，伴随剑鸣与熔岩咕嘟声；
+4-8秒：环绕摇镜快切，主角旋身挥剑，剑刃撕裂空气迸射红色冲击波，前排魔兵被击飞碎裂成灰烬，
+伴随剑气破空声与魔兵惨嚎；
+9-12秒：仰拍拉远定格慢放，主角跃起腾空，剑刃凝聚巨型雷光电弧劈向魔兵群；
+13-15秒：缓推特写主角落地收剑的姿态，衣摆余波微动，冷声道"此界之门，不容踏越"，
+音效收束为余音震颤与渐弱风声。
+</code></pre>
+
+<h3 id="示例2-多图参考---产品广告">示例2：多图参考 - 产品广告</h3>
+
+<pre><code>
+@图片1中的可口可乐饮料，360度高速旋转2圈后，突然停住蓄力分裂成了3个部分进行展示。
+随后分解后的可口可乐饮料罐的上中下三部分快速向内旋转合成，一罐完整的可口可乐饮料，
+3D渲染产品展示特效，动感产品特效展示
+
+参考素材：
+- @图片1：可乐产品正面高清图
+</code></pre>
+
+<h3 id="示例3-一镜到底---多图参考">示例3：一镜到底 - 多图参考</h3>
+
+<pre><code>
+谍战片风格，@图片1作为首帧画面，镜头正面跟拍穿着红风衣的女特工向前走，
+镜头全景跟随，不断有路人遮挡红衣女子，走到一个拐角处，参考@图片2的拐角建筑，
+固定镜头红衣女子离开画面，走在拐角处消失，一个戴面具的女孩在拐角处躲着恶狠狠的盯着她，
+面具女孩形象参考@图片3。镜头往前摇向红衣女特工，她走进一座豪宅消失不见了，豪宅参考@图片4。
+全程不要切镜头，一镜到底。
+</code></pre>
+
+<hr>
+
+<h2 id="九-整合计划">九、整合计划</h2>
+
+<h3 id="短期-1-2周">短期（1-2周）</h3>
+
+<ul>
+<li>[ ] 在即梦平台注册账号</li>
+<li>[ ] 测试 Skill 的提示词生成效果</li>
+<li>[ ] 生成几个不同类型的视频</li>
+</ul>
+
+<h3 id="中期-1-3个月">中期（1-3个月）</h3>
+
+<ul>
+<li>[ ] 参考此 Skill 结构为 OpenClaw 开发类似技能</li>
+<li>[ ] 研究 Runway、Pika 等其他平台的提示词模式</li>
+<li>[ ] 建立个人提示词素材库</li>
+</ul>
+
+<h3 id="长期-3个月以上">长期（3个月以上）</h3>
+
+<ul>
+<li>[ ] 将 AI 视频生成整合到内容创作工作流</li>
+<li>[ ] 开发跨平台的 AI 视频提示词生成工具</li>
+</ul>
+
+<hr>
+
+<h2 id="十-反思洞察">十、反思洞察</h2>
+
+<h3 id="模式识别">模式识别</h3>
+
+<ol>
+<li><strong>结构化提示词优于自由描述</strong> - 时间戳分镜法让 AI 更好地理解时序</li>
+<li><strong>多模态引用是趋势</strong> - @语法让图片/视频/音频成为提示词的一部分</li>
+<li><strong>Skill 化封装</strong> - 将专业知识封装为 Skill，降低使用门槛</li>
+</ol>
+
+<h3 id="与现有能力的关系">与现有能力的关系</h3>
+
+<table>
+<thead><tr><th>现有能力</th><th>关系</th></tr></thead><tbody>
+<tr><td>提示词工程</td><td><strong>增强</strong> - 学习了视频领域的专业提示词技巧</td></tr>
+<tr><td>OpenClaw Skills</td><td><strong>补充</strong> - 了解了 Claude Code Skill 的另一种实现方式</td></tr>
+<tr><td>AI 内容创作</td><td><strong>扩展</strong> - 新增视频生成领域的知识</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="相关链接">相关链接</h2>
+
+<ul>
+<li><a href="https://jimeng.jianying.com">Seedance 2.0 即梦平台</a></li>
+<li><a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code 文档</a></li>
+<li><a href="https://github.com/songguoxs/seedance-prompt-skill">GitHub 仓库</a></li>
+</ul>
+
+<hr>
+
+<p><em>学习完成时间: 2026-03-26</em>  </p>
+<p><em>学习质量: ⭐⭐⭐⭐⭐ (专业完整，立即可用)</em></p>
+
+    </div>
+    <footer>
+        <p>🍪 使用 Ink Blog Core 构建</p>
+    </footer>
+</body>
+</html>
