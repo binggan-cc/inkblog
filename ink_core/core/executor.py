@@ -35,6 +35,26 @@ def _make_session_id(action: str, started_at: datetime) -> str:
     return f"{ts}-{action}-{short_hash}"
 
 
+def _filter_committable(files: list[Path], workspace_root: Path) -> list[Path]:
+    """Return only files that are not ignored by .gitignore."""
+    import subprocess
+    result = []
+    for f in files:
+        if not f.exists():
+            continue
+        try:
+            r = subprocess.run(
+                ["git", "check-ignore", "-q", str(f)],
+                cwd=workspace_root,
+                capture_output=True,
+            )
+            if r.returncode != 0:  # not ignored
+                result.append(f)
+        except Exception:
+            result.append(f)  # if check fails, include it
+    return result
+
+
 class CommandExecutor:
     """Transaction coordinator for a single ink command.
 
@@ -173,8 +193,12 @@ class CommandExecutor:
                 return
             if not ctx.changed_files:
                 return
+            # Filter out files ignored by .gitignore to avoid git add errors
+            committable = _filter_committable(ctx.changed_files, self._workspace_root)
+            if not committable:
+                return
             message = self._commit_message(intent, result)
-            ok = self._git.aggregate_commit(ctx.changed_files, message)
+            ok = self._git.aggregate_commit(committable, message)
             if not ok:
                 print(
                     "⚠️  Git commit failed — business writes preserved. "
