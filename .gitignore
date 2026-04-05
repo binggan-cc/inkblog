@@ -11,8 +11,16 @@ build/
 .pytest_cache/
 .hypothesis/
 
-# Ink sessions (not versioned)
+# Ink runtime (not versioned)
 .ink/sessions/
+.ink/publish-history/
+.ink/publish-output/
+
+# Generated site output
+_site/
+
+# Derived indexes (rebuildable)
+_index/
 
 # macOS
 .DS_Store
