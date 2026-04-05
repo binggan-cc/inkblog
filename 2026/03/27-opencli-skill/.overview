@@ -1,14 +1,22 @@
-title: "OpenCLI：多平台浏览器自动化方案"
-created_at: "2026-03-27T14:00:00"
-updated_at: "2026-03-27T14:00:00"
-status: published
-tags: ["opencli", "browser", "automation", "multi-platform", "tools"]
-category: tech
-template: tech
-summary: "OpenCLI通过连接Chrome复用登录状态，实现44个平台244个命令的操作能力，无需API Key即可操作知乎、B站、小红书、Twitter等平台"
-key_points:
-  - 44个平台244个命令
-  - 复用Chrome登录状态
-  - 无需API Key和开发者账号
-  - OpenClaw Skill封装
-word_count: 2800
+---
+title: ''
+created_at: '2026-04-05T08:55:41'
+updated_at: '2026-04-05T08:55:41'
+status: draft
+tags: []
+word_count: 379
+reading_time_min: 1
+related: []
+---
+
+## Summary
+
+OpenCLI：多平台浏览器自动化方案 来源: 微信公众号「网罗灯下黑」- 网黑哥 项目: OpenCLI + OpenCLI Skill for OpenClaw 学习时间: 2026-03-27 TL;DR OpenCLI 是一个开源命令行工具（GitHub 7.3k+ stars），能将任何网站或桌面应用变成可在终端直接操作的命令。 核心突破： - ❌ 不需要申请开发者账号 - ❌ 不需要 API Key - ❌ 不需要官方授权 - ✅ 直接连接 Chrome 浏览器 - ✅ 复用浏览器中已登录的会话状态 一、工作原理 "你在浏览器里登了知乎，OpenCLI 就直接借用这个登录状态去操作，不需要申请任何资质，不需要任何开发者权限，密码也不会存在任何地方。" 二、项目资源 | 项目 | 地址 | 说明 | |------|------|------| | OpenCLI 本体 | https://github.com/jackwener/opencli | 开源命令行工具 | | OpenCLI Skill | https://github.com/joeseesun/opencli-skill | OpenClaw 技能封装 | 三、支持的 44 个平台分类 3.1 热门/排行类 | 命令 | 功能 | |------|------| | | 知乎热榜 | | | B站热门视频 | | | 微博热搜 | | | Twitter 热门话题 | | | Reddit 热帖 | 3.2 搜索类 | 命令 | 功能 | |------|------| | | B站搜索 | | | 知乎搜索 | | | 小红书搜索 | | | Reddit 搜索 | 3.3 读取/浏览类 | 命令 | 功能 | |------|------| | | 小红书首页推荐 | | | B站关注动态 | | | Twitter 首页时间线 | 3.4 发布/写操作类 | 命令 | 功能 | |------|------| | | 发推 | | | 回复推文 | | | 点赞 | | | 删推 | | | BOSS直聘批量打招呼 | 3.5 下载类 | 命令 | 功能 | |------|------| | | 下载B站视频 | 3.6 桌面应用控制类（macOS独占） | 命令 | 功能 | |------|------| | ChatGPT 桌面版控制 | 问问题、发消息、新建对话 | | Codex 桌面版控制 | 对话、历史、切换模型、导出 | | 微信桌面版控制 | （macOS）| ⚠️ 限制：桌面应用控制仅支持 macOS，不支持 Windows 四、安装步骤 4.1 前提条件 1. ✅ OpenClaw 必须部署在本地电脑（不能是云端） 2. ✅ 需要 Chrome 浏览器 3.
+
+## Key Points
+
+- ❌ 不需要申请开发者账号
+- ❌ 不需要 API Key
+- ❌ 不需要官方授权
+- ✅ 直接连接 Chrome 浏览器
+- ✅ 复用浏览器中已登录的会话状态

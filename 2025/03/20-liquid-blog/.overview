@@ -1,17 +1,22 @@
-title: "Liquid Blog - Skills + Markdown 博客系统"
-created_at: 2025-03-20T10:00:00
-updated_at: 2025-03-20T10:00:00
-status: published
-tags:
-  - blog
-  - markdown
-  - cli
-  - ai
-category: tech
-summary:
-  problem: "传统博客系统灵活性不足，发布流程繁琐"
-  solution: "文件系统即数据库 + Skills 可复用能力 + 三层上下文架构"
-  impact: "Token 成本降低 90%，发布效率提升 10x"
-related:
-  - "2025/03/19-openclaw-guide"
-  - "2025/03/18-liquid-cli"
+---
+title: ''
+created_at: '2026-04-05T08:55:41'
+updated_at: '2026-04-05T08:55:41'
+status: draft
+tags: []
+word_count: 192
+reading_time_min: 1
+related: []
+---
+
+## Summary
+
+Liquid Blog - Skills + Markdown 博客系统 🌊 像水一样流动的博客系统，意图驱动的创作体验 创建时间: 2025-03-20 状态: ✅ 已发布 标签: #blog #markdown #cli #ai 摘要 本文介绍了一种全新的博客系统架构：将文件系统作为数据库，用 Markdown 定义可复用的 AI 能力（Skills），并通过三层上下文架构（L0/L1/L2）实现高效的 Token 使用和精准的语义检索。 问题背景 传统博客系统面临以下问题： 1. 发布流程繁琐 - 需要登录后台、填写表单、手动分发到各平台 2. 数据锁定 - 内容被困在数据库中，迁移困难 3.
+
+## Key Points
+
+- source: 文章路径
+- channels: [blog|newsletter|mastodon]
+- OpenClaw Documentation
+- Unix Philosophy
+- Zettelkasten Method
