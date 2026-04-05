@@ -83,7 +83,7 @@ class NewCommand(BuiltinCommand):
 # ---------------------------------------------------------------------------
 
 class InitCommand(BuiltinCommand):
-    """Initialise a Git repository in the workspace."""
+    """Initialise a Git repository and workspace structure."""
 
     def __init__(self, workspace_root: Path) -> None:
         self._workspace_root = workspace_root
@@ -95,20 +95,62 @@ class InitCommand(BuiltinCommand):
     def run(self, target: str | None, params: dict) -> SkillResult:
         from ink_core.git.manager import GitManager
 
+        changed: list[Path] = []
+
+        # 1. Create workspace directory structure
+        dirs = [
+            self._workspace_root / ".ink" / "sessions",
+            self._workspace_root / ".ink" / "skills",
+            self._workspace_root / ".ink" / "publish-history",
+            self._workspace_root / "_index",
+        ]
+        for d in dirs:
+            d.mkdir(parents=True, exist_ok=True)
+
+        # 2. Write .ink/config.yaml if not exists
+        config_path = self._workspace_root / ".ink" / "config.yaml"
+        if not config_path.exists():
+            config_path.write_text(
+                "site:\n"
+                "  title: \"My Blog\"\n"
+                "  subtitle: \"\"\n"
+                "  author: \"\"\n"
+                "  base_url: \"\"\n\n"
+                "channels:\n"
+                "  blog:\n"
+                "    type: static\n"
+                "    output: \"./_site\"\n\n"
+                "search:\n"
+                "  engine: keyword\n"
+                "  top_k: 10\n\n"
+                "git:\n"
+                "  auto_commit: true\n",
+                encoding="utf-8",
+            )
+            changed.append(config_path)
+
+        # 3. Git init
         git = GitManager(self._workspace_root)
         if git.is_repo():
             return SkillResult(
                 success=True,
-                message="Git repository already initialised.",
-                changed_files=[],
+                message="Workspace already initialised.",
+                changed_files=changed,
             )
 
         ok = git.init_repo()
         if ok:
+            changed.append(self._workspace_root / ".gitignore")
             return SkillResult(
                 success=True,
-                message="Git repository initialised.",
-                changed_files=[self._workspace_root / ".gitignore"],
+                message=(
+                    "Workspace initialised.\n"
+                    "  ✅ .ink/ directory structure created\n"
+                    "  ✅ .ink/config.yaml created\n"
+                    "  ✅ Git repository initialised\n\n"
+                    "Next: edit .ink/config.yaml to set your site title and author."
+                ),
+                changed_files=changed,
             )
         return SkillResult(
             success=False,
@@ -229,7 +271,7 @@ class BuildCommand(BuiltinCommand):
 
         include_all = bool(params.get("all", False))
 
-        config = InkConfig()
+        config = InkConfig(workspace_root=self._workspace_root)
         article_manager = ArticleManager(self._workspace_root)
         index_manager = IndexManager(self._workspace_root)
 

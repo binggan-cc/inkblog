@@ -89,16 +89,20 @@ class SiteBuilder:
 
         page_count = 0
 
+        site_title = self._config.get("site.title", "Blog")
+
         # Render individual article pages
         for article in articles:
             out_path = output_dir / Path(article.canonical_id) / "index.html"
-            renderer.render_article(article, out_path)
+            renderer.render_article(article, out_path, site_title=site_title)
             page_count += 1
 
         # Render index page
-        site_title = self._config.get("site.title", "Blog")
         index_path = output_dir / "index.html"
-        renderer.render_index(articles, index_path, site_title=site_title)
+        renderer.render_index(articles, index_path, site_title=site_title, site_config={
+            "subtitle": self._config.get("site.subtitle", ""),
+            "author": self._config.get("site.author", "Anonymous"),
+        })
         page_count += 1  # count index page
 
         # Generate RSS feed (published articles only, max 20)

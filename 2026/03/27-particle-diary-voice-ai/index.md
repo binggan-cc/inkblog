@@ -1,3 +1,13 @@
+---
+title: 粒子日记本：AI语音对话产品案例
+slug: particle-diary-voice-ai
+date: '2026-03-27'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # 粒子日记本：AI语音对话产品案例
 
 > **来源**: 小红书 (xiaohongshu.com)  

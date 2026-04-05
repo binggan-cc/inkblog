@@ -1,0 +1,17 @@
+site:
+  title: "🌱 程老师的数字花园"
+  subtitle: "技术、产品与思考的沉淀"
+  author: "程老师"
+  base_url: ""
+
+channels:
+  blog:
+    type: static
+    output: "./_site"
+
+search:
+  engine: keyword
+  top_k: 10
+
+git:
+  auto_commit: true

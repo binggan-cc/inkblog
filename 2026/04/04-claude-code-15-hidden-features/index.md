@@ -1,3 +1,13 @@
+---
+title: Claude Code 的 15 个隐藏能力
+slug: claude-code-15-hidden-features
+date: '2026-04-04'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # Claude Code 的 15 个隐藏能力
 
 > 来源：Boris Cherny (Claude Code创始人) 2025年3月30日  

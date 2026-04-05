@@ -1,3 +1,13 @@
+---
+title: 镜头运动 × 场景预设速查表
+slug: shot-motion-presets
+date: '2026-03-27'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # 镜头运动 × 场景预设速查表
 
 > **文档类型**: AI视频生成/电影摄影参考  

@@ -1,3 +1,13 @@
+---
+title: Vibe Coding 指南：AI结对编程方法论
+slug: vibe-coding-guide
+date: '2026-03-16'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # Vibe Coding 指南：AI结对编程方法论
 
 > **资源**: https://github.com/2025Emma/vibe-coding-cn  

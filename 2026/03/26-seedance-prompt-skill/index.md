@@ -1,3 +1,13 @@
+---
+title: Seedance 2.0 视频提示词工程
+slug: seedance-prompt-skill
+date: '2026-03-26'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # Seedance 2.0 视频提示词工程
 
 > **资源**: https://github.com/songguoxs/seedance-prompt-skill  

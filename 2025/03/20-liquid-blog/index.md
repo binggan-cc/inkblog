@@ -1,3 +1,13 @@
+---
+title: Liquid Blog - Skills + Markdown 博客系统
+slug: liquid-blog
+date: '2025-03-20'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # Liquid Blog - Skills + Markdown 博客系统
 
 > 🌊 像水一样流动的博客系统，意图驱动的创作体验

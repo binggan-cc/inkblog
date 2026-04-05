@@ -1,3 +1,13 @@
+---
+title: 学习笔记：agency-agents AI Agent角色库
+slug: agency-agents-study
+date: '2026-03-15'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # 学习笔记：agency-agents AI Agent角色库
 
 > **资源**: https://github.com/msitarzewski/agency-agents  

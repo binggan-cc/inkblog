@@ -1,3 +1,13 @@
+---
+title: OpenCLI：多平台浏览器自动化方案
+slug: opencli-skill
+date: '2026-03-27'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # OpenCLI：多平台浏览器自动化方案
 
 > **来源**: 微信公众号「网罗灯下黑」- 网黑哥  

@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: ink-blog-core
-Version: 0.1.0
-Summary: Ink Blog Core - CLI + Skills + Markdown blog system (Phase 1)
-Requires-Python: >=3.11
-Requires-Dist: pyyaml>=6.0
-Provides-Extra: dev
-Requires-Dist: pytest>=7.0; extra == "dev"
-Requires-Dist: hypothesis>=6.0; extra == "dev"

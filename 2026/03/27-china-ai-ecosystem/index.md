@@ -1,3 +1,13 @@
+---
+title: 中国AI生态深度观察
+slug: china-ai-ecosystem
+date: '2026-03-27'
+status: published
+tags: []
+published_at: '2026-04-05T01:30:00'
+---
+
+
 # 中国AI生态深度观察
 
 > **来源**: José Maria Macedo (Delphi Labs 联合创始人)  
