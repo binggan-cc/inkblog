@@ -967,3 +967,206 @@ tests/
 ├── test_properties.py       # 所有属性测试（hypothesis）
 └── test_integration.py      # 集成测试
 ```
+
+---
+
+## 静态站生成（需求 8 扩展）
+
+### 概述
+
+`ink build` 命令将博客内容生成为可部署的静态 HTML 站点。构建流程读取 `_index/timeline.json`，遍历文章，通过 Jinja2 模板渲染 HTML 页面，并生成 RSS feed。
+
+### 数据流
+
+```
+ink build
+  → BuildCommand.run()
+  → SiteBuilder.build()
+      → 读取 _index/timeline.json
+      → 过滤文章（默认 status=published，--all 包含全部）
+      → 遍历每篇 Article
+          → ArticleManager.read()
+          → TemplateRenderer.render_article(article) → _site/YYYY/MM/DD-slug/index.html
+      → TemplateRenderer.render_index(articles) → _site/index.html
+      → RSSGenerator.generate(articles[:20]) → _site/feed.xml
+      → 返回 BuildResult（page_count, duration_ms）
+  → CommandExecutor 触发 aggregate_commit("build: regenerate static site")
+```
+
+### 新增组件
+
+#### `BuildCommand`（`ink_core/cli/builtin.py` 追加）
+
+```python
+class BuildCommand(BuiltinCommand):
+    """ink build 内置命令"""
+    name = "build"
+
+    def run(self, target: str | None, params: dict) -> SkillResult:
+        """
+        params 支持：
+          - all: bool  是否包含非 published 文章
+        返回 SkillResult，data 包含 page_count 和 duration_ms
+        """
+        ...
+```
+
+注册到 `InkCLI` 的内置命令表，不走 SkillRegistry。
+
+#### `SiteBuilder`（`ink_core/site/builder.py`）
+
+```python
+@dataclass
+class BuildResult:
+    page_count: int
+    duration_ms: int
+    output_dir: Path
+
+class SiteBuilder:
+    """静态站点构建核心逻辑"""
+    def __init__(self, config: InkConfig, article_manager: ArticleManager,
+                 index_manager: IndexManager): ...
+
+    def build(self, *, include_all: bool = False) -> BuildResult:
+        """
+        1. 读取 timeline.json
+        2. 过滤文章（include_all=False 时仅 status=published）
+        3. 确定输出目录（config.channels.blog.output 或默认 _site/）
+        4. 为每篇文章生成 HTML 页面
+        5. 生成首页 index.html
+        6. 生成 feed.xml
+        7. 返回 BuildResult
+        """
+        ...
+
+    def _output_dir(self) -> Path:
+        """从 config 读取输出目录，默认 _site/"""
+        ...
+```
+
+#### `TemplateRenderer`（`ink_core/site/renderer.py`）
+
+```python
+class TemplateRenderer:
+    """Jinja2 模板渲染器"""
+    TEMPLATE_DIR = "_templates/site"
+
+    # 内置默认模板（Python 字符串，作为 fallback）
+    DEFAULT_ARTICLE_TEMPLATE: str = """..."""
+    DEFAULT_INDEX_TEMPLATE: str = """..."""
+
+    def __init__(self, workspace_root: Path): ...
+
+    def render_article(self, article: Article, output_path: Path) -> None:
+        """渲染单篇文章页面，优先使用 _templates/site/article.html"""
+        ...
+
+    def render_index(self, articles: list[Article], output_path: Path) -> None:
+        """渲染首页，优先使用 _templates/site/index.html"""
+        ...
+
+    def _get_env(self) -> jinja2.Environment:
+        """
+        若 _templates/site/ 存在则使用 FileSystemLoader，
+        否则使用 BaseLoader + 内置默认模板字符串
+        """
+        ...
+```
+
+#### `RSSGenerator`（`ink_core/site/rss.py`）
+
+```python
+class RSSGenerator:
+    """RSS/Atom feed 生成器"""
+    def generate(self, articles: list[Article], output_path: Path,
+                 site_config: dict) -> None:
+        """
+        生成 Atom/RSS feed XML，包含最近 20 篇文章。
+        使用 Python 标准库 xml.etree.ElementTree，无需额外依赖。
+        """
+        ...
+```
+
+### 目录结构
+
+```
+ink_core/
+└── site/
+    ├── __init__.py
+    ├── builder.py      # SiteBuilder, BuildResult
+    ├── renderer.py     # TemplateRenderer
+    └── rss.py          # RSSGenerator
+```
+
+### 内置命令表更新
+
+`InkCLI` 的内置命令表新增 `build`：
+
+| 命令 | 类型 | 说明 |
+|------|------|------|
+| `build` | BuiltinCommand | 静态站生成，不走 SkillRegistry |
+
+### 依赖更新
+
+`pyproject.toml` 新增依赖：
+
+```toml
+[project]
+dependencies = [
+    # ... 现有依赖 ...
+    "jinja2>=3.1",
+]
+```
+
+### 正确性属性（静态站生成）
+
+### Property 29: 发布文章过滤
+
+*For any* 包含不同 `status` 值文章的集合，默认构建模式（不传 `--all`）生成的 `_site/` 目录中，所有生成的文章 HTML 页面必须对应 `status=published` 的文章，且不包含其他状态文章的页面。
+
+**Validates: Requirements 8.3**
+
+### Property 30: 文章页面路径格式
+
+*For any* 有效的 Article（含合法 Canonical ID），`SiteBuilder` 生成的 HTML 文件路径必须匹配 `_site/YYYY/MM/DD-slug/index.html` 格式，其中 `YYYY/MM/DD-slug` 与 Article 的 Canonical ID 一致。
+
+**Validates: Requirements 8.4**
+
+### Property 31: 首页文章顺序一致性
+
+*For any* 文章集合，`_site/index.html` 中文章列表的顺序必须与 `_index/timeline.json` 中的顺序一致。
+
+**Validates: Requirements 8.5**
+
+### Property 32: RSS feed 条目数上限
+
+*For any* 包含超过 20 篇已发布文章的集合，`_site/feed.xml` 中的条目数必须恰好为 20，且为按日期排序最新的 20 篇。
+
+**Validates: Requirements 8.6**
+
+### Property 33: 构建统计输出完整性
+
+*For any* 文章集合，`ink build` 执行完成后的输出必须包含生成的 HTML 页面数量（非负整数）和构建耗时（正整数毫秒）。
+
+**Validates: Requirements 8.11**
+
+### 测试策略补充
+
+#### 单元测试
+
+| 测试范围 | 测试内容 |
+|----------|----------|
+| BuildCommand | `ink build` 命令注册与调用（8.1）、`--all` 参数传递（8.3） |
+| TemplateRenderer | 自定义模板优先（8.8）、内置默认模板 fallback（8.9） |
+| SiteBuilder | 输出目录默认值与 config 覆盖（8.10） |
+| Git 集成 | build 后触发 commit，信息为 `build: regenerate static site`（8.12） |
+
+#### 属性测试
+
+| Property | 测试重点 | 生成器 |
+|----------|----------|--------|
+| P29 发布文章过滤 | 随机文章集合（含多种 status）→ 默认模式只生成 published 页面 | `st.lists(article_strategy())` |
+| P30 文章页面路径格式 | 随机 Article → 输出路径匹配 `_site/YYYY/MM/DD-slug/index.html` | 自定义 Article 生成器 |
+| P31 首页文章顺序 | 随机文章集合 → 首页顺序与 timeline.json 一致 | `st.lists(article_strategy(), min_size=1)` |
+| P32 RSS 条目数上限 | 超过 20 篇文章 → feed.xml 恰好 20 条 | `st.lists(article_strategy(), min_size=21)` |
+| P33 构建统计完整性 | 随机文章集合 → 输出包含 page_count 和 duration_ms | `st.lists(article_strategy())` |

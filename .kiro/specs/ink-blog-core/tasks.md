@@ -320,7 +320,7 @@
     - 所有写操作通过 CommandExecutor 统一触发 GitManager.aggregate_commit()
     - _Requirements: 1.3, 1.5, 2.8, 6.2, 6.3, 6.4_
 
-  - [-]* 13.2 写属性测试：幂等性
+  - [x]* 13.2 写属性测试：幂等性
     - **Property 25: 幂等性**
     - **Validates: Requirements NFR-2**
 
@@ -355,3 +355,42 @@
 - Property tests validate universal correctness properties (hypothesis)
 - Unit tests validate specific examples and edge cases (pytest)
 - 设计文档使用 Python，所有实现代码使用 Python
+
+- [ ] 15. 静态站生成
+  - [ ] 15.1 实现 `SiteBuilder` 和 `TemplateRenderer`（`ink_core/site/`）
+    - 创建 `ink_core/site/__init__.py`、`ink_core/site/builder.py`、`ink_core/site/renderer.py`
+    - 实现 `BuildResult` dataclass（page_count, duration_ms, output_dir）
+    - 实现 `SiteBuilder.build(*, include_all: bool = False) -> BuildResult`：读取 `_index/timeline.json`，过滤文章，遍历生成 HTML，调用 `TemplateRenderer` 和 `RSSGenerator`，返回 BuildResult
+    - 实现 `SiteBuilder._output_dir()`：从 `config.channels.blog.output` 读取，默认 `_site/`
+    - 实现 `TemplateRenderer`：优先加载 `_templates/site/` 下的用户模板，缺失时使用内置默认模板字符串（Python 字符串常量）；实现 `render_article(article, output_path)` 和 `render_index(articles, output_path)`
+    - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.7, 8.8, 8.9, 8.10_
+
+  - [ ] 15.2 实现 `RSSGenerator`（`ink_core/site/rss.py`）
+    - 创建 `ink_core/site/rss.py`
+    - 实现 `RSSGenerator.generate(articles, output_path, site_config)`：使用 `xml.etree.ElementTree` 生成 Atom feed，包含最近 20 篇已发布文章
+    - _Requirements: 8.6_
+
+  - [ ] 15.3 实现 `BuildCommand` 并注册到 `InkCLI`（`ink_core/cli/builtin.py` 追加）
+    - 在 `ink_core/cli/builtin.py` 末尾追加 `BuildCommand(BuiltinCommand)` 实现：调用 `SiteBuilder.build()`，格式化输出 page_count 和 duration_ms，返回 SkillResult
+    - 在 `InkCLI` 的内置命令表中注册 `BuildCommand`，添加 `build` 子命令（支持 `--all` 参数）
+    - 确保 `CommandExecutor` 在 `build` 命令完成后触发 `aggregate_commit("build: regenerate static site")`
+    - _Requirements: 8.1, 8.11, 8.12_
+
+  - [x] 15.4 更新 `pyproject.toml` 添加 jinja2 依赖
+    - 在 `[project].dependencies` 中添加 `"jinja2>=3.1"`
+    - _Requirements: 8.7_
+
+  - [ ]* 15.5 写单元测试：静态站生成
+    - 测试 `BuildCommand` 注册与 `--all` 参数传递（8.1, 8.3）
+    - 测试 `TemplateRenderer` 自定义模板优先与内置 fallback（8.8, 8.9）
+    - 测试 `SiteBuilder` 输出目录默认值与 config 覆盖（8.10）
+    - 测试 build 后 Git commit 信息为 `build: regenerate static site`（8.12）
+    - _Requirements: 8.1, 8.3, 8.8, 8.9, 8.10, 8.12_
+
+  - [ ]* 15.6 写属性测试：HTML 输出完整性
+    - **Property 29: 发布文章过滤** — 随机文章集合（含多种 status），默认模式只生成 published 页面
+    - **Property 30: 文章页面路径格式** — 随机 Article，输出路径匹配 `_site/YYYY/MM/DD-slug/index.html`
+    - **Property 31: 首页文章顺序一致性** — 随机文章集合，首页顺序与 timeline.json 一致
+    - **Property 32: RSS feed 条目数上限** — 超过 20 篇文章，feed.xml 恰好 20 条
+    - **Property 33: 构建统计输出完整性** — 随机文章集合，输出包含 page_count 和 duration_ms
+    - **Validates: Requirements 8.3, 8.4, 8.5, 8.6, 8.11**

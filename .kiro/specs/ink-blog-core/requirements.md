@@ -558,3 +558,26 @@ Article frontmatter 中的 `status` 字段 SHALL 支持以下枚举值：
 6. Canonical ID 依赖路径，Article 重命名或移动会导致所有引用漂移，Phase 1 不提供自动引用更新机制
 7. `published` 状态在 Phase 1 中表示"至少一个渠道成功"，若后续需要区分主渠道与辅助渠道，需要引入更细粒度的状态模型
 8. 自动生成 slug 冲突时 Phase 1 直接报错（不追加后缀），用户需手动指定 `--slug` 或 `--date` 规避
+
+---
+
+### 需求 8：静态站生成
+
+**用户故事：** 作为内容创作者，我希望通过 `ink build` 将博客内容生成为可部署的静态 HTML 站点，从而无需手工维护 HTML 文件即可发布可访问的网站。
+
+#### 验收标准
+
+1. THE CLI SHALL 支持 `ink build` 命令，触发静态站点生成流程
+2. WHEN `ink build` 执行时，THE SiteBuilder SHALL 读取 `_index/timeline.json` 获取文章列表
+3. WHEN `ink build` 执行时，THE SiteBuilder SHALL 默认仅处理 `status=published` 的文章；WHERE `--all` 参数被传入时，THE SiteBuilder SHALL 处理所有状态的文章
+4. WHEN 处理每篇文章时，THE SiteBuilder SHALL 在 `_site/YYYY/MM/DD-slug/index.html` 路径生成对应 HTML 页面
+5. THE SiteBuilder SHALL 生成首页 `_site/index.html`，内容为按 `timeline.json` 排序的文章列表
+6. THE SiteBuilder SHALL 生成 RSS feed 文件 `_site/feed.xml`，包含最近 20 篇已发布文章
+7. THE SiteBuilder SHALL 使用 Jinja2 模板引擎渲染 HTML 页面
+8. WHEN `_templates/site/` 目录存在且包含有效模板时，THE TemplateRenderer SHALL 优先使用该目录下的用户自定义模板
+9. IF `_templates/site/` 目录不存在或缺少对应模板文件，THEN THE TemplateRenderer SHALL 使用内置默认模板（嵌入代码中的 Python 字符串）
+10. THE SiteBuilder SHALL 将生成文件输出到默认目录 `_site/`；WHERE `~/.ink/config.yaml` 中 `channels.blog.output` 已配置时，THE SiteBuilder SHALL 使用该配置值作为输出目录
+11. WHEN `ink build` 执行完成时，THE CLI SHALL 输出构建统计信息，至少包含：
+    - 生成的 HTML 页面数量
+    - 构建耗时（毫秒）
+12. WHEN `ink build` 执行完成时，THE System SHALL 触发 `aggregate_commit()`，提交信息为 `build: regenerate static site`
