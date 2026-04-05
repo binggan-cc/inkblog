@@ -344,7 +344,7 @@
     - 单次命令多文件变更 → 验证恰好一次 commit
     - _Requirements: 6.8_
 
-- [~] 14. Final checkpoint - 全量测试通过
+- [x] 14. Final checkpoint - 全量测试通过
   - Ensure all tests pass; unresolved issues SHALL be recorded in an implementation notes file with chosen default behavior.
 
 ## Notes
