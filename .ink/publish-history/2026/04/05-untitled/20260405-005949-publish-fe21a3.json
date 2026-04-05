@@ -1,0 +1,28 @@
+{
+  "session_id": "2026-04-05T00:59:49",
+  "canonical_id": "2026/04/05-untitled",
+  "attempted_at": "2026-04-05T00:59:49",
+  "channels": [
+    {
+      "channel": "blog",
+      "status": "success",
+      "attempted_at": "2026-04-05T00:59:49",
+      "published_at": "2026-04-05T00:59:49",
+      "error": null
+    },
+    {
+      "channel": "newsletter",
+      "status": "success",
+      "attempted_at": "2026-04-05T00:59:49",
+      "published_at": "2026-04-05T00:59:49",
+      "error": null
+    },
+    {
+      "channel": "mastodon",
+      "status": "draft_saved",
+      "attempted_at": "2026-04-05T00:59:49",
+      "published_at": null,
+      "error": null
+    }
+  ]
+}
