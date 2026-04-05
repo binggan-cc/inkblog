@@ -356,7 +356,7 @@
 - Unit tests validate specific examples and edge cases (pytest)
 - 设计文档使用 Python，所有实现代码使用 Python
 
-- [ ] 15. 静态站生成
+- [x] 15. 静态站生成
   - [x] 15.1 实现 `SiteBuilder` 和 `TemplateRenderer`（`ink_core/site/`）
     - 创建 `ink_core/site/__init__.py`、`ink_core/site/builder.py`、`ink_core/site/renderer.py`
     - 实现 `BuildResult` dataclass（page_count, duration_ms, output_dir）
