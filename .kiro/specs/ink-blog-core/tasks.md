@@ -60,7 +60,7 @@
     - `L1Generator.generate(content, existing=None)` → 包含 title、tags、summary、related 的 YAML frontmatter + Markdown 章节；`existing` 仅用于读取历史元数据（如 created_at），不保留人工修改内容
     - _Requirements: 2.5, 2.6_
 
-  - [ ]* 3.2 写属性测试：L0 摘要约束
+  - [-]* 3.2 写属性测试：L0 摘要约束
     - **Property 8: L0 摘要约束**
     - **Validates: Requirements 2.5**
 
@@ -68,7 +68,7 @@
     - **Property 9: L1 概览必填字段**
     - **Validates: Requirements 2.6**
 
-  - [ ]* 3.4 写属性测试：L0/L1 往返属性
+  - [-]* 3.4 写属性测试：L0/L1 往返属性
     - **Property 12: L0/L1 往返属性**
     - **Validates: Requirements 2.12**
 
@@ -151,7 +151,7 @@
     - 不支持的渠道返回支持渠道列表
     - _Requirements: 3.1, 3.2, 3.5, 3.6, 3.7, 3.8, 3.10, 3.12, 3.15_
 
-  - [ ]* 6.3 写属性测试：发布状态门控
+  - [-]* 6.3 写属性测试：发布状态门控
     - **Property 13: 发布状态门控**
     - **Validates: Requirements 3.2**
 
@@ -202,7 +202,7 @@
     - **Property 21: 分层搜索策略**
     - **Validates: Requirements 5.1, 5.2**
 
-  - [ ]* 8.3 写属性测试：搜索排序稳定性
+  - [-]* 8.3 写属性测试：搜索排序稳定性
     - **Property 19: 搜索排序稳定性**
     - **Validates: Requirements 5.8, 5.9**
 
@@ -320,7 +320,7 @@
     - 所有写操作通过 CommandExecutor 统一触发 GitManager.aggregate_commit()
     - _Requirements: 1.3, 1.5, 2.8, 6.2, 6.3, 6.4_
 
-  - [ ]* 13.2 写属性测试：幂等性
+  - [-]* 13.2 写属性测试：幂等性
     - **Property 25: 幂等性**
     - **Validates: Requirements NFR-2**
 
