@@ -1,22 +1,27 @@
 ---
-title: Liquid Blog - Skills + Markdown 博客系统
+title: Ink Blog Core：FS-as-DB 博客系统的设计与实现
 created_at: '2026-04-05T08:55:41'
-updated_at: '2026-04-05T10:19:39'
+updated_at: '2026-04-05T10:21:56'
 status: published
-tags: []
-word_count: 192
+tags:
+- ink
+- blog
+- cli
+- markdown
+- fs-as-db
+word_count: 138
 reading_time_min: 1
 related: []
 ---
 
 ## Summary
 
-Liquid Blog - Skills + Markdown 博客系统 🌊 像水一样流动的博客系统，意图驱动的创作体验 创建时间: 2025-03-20 状态: ✅ 已发布 标签: #blog #markdown #cli #ai 摘要 本文介绍了一种全新的博客系统架构：将文件系统作为数据库，用 Markdown 定义可复用的 AI 能力（Skills），并通过三层上下文架构（L0/L1/L2）实现高效的 Token 使用和精准的语义检索。 问题背景 传统博客系统面临以下问题： 1. 发布流程繁琐 - 需要登录后台、填写表单、手动分发到各平台 2. 数据锁定 - 内容被困在数据库中，迁移困难 3.
+Ink Blog Core：FS-as-DB 博客系统的设计与实现 🌊 文件系统即数据库，意图驱动的内容创作体验 这篇文章记录了 Ink Blog Core 的设计理念和实现过程。从一个想法出发：如果把文件系统当作数据库，博客系统可以有多简单？ 核心理念 FS-as-DB 不依赖任何外部数据库。目录结构表达关系，Markdown 文件即数据，Git 提供版本控制。所有内容都是人类可读的纯文本，可以用任何编辑器打开，可以直接 ，可以随时迁移。 三层上下文 每篇文章维护三个层级，按需加载，大幅降低 AI 检索的 Token 成本： | 层级 | 文件 | 内容 | 典型用途 | |------|------|------|----------| | L0 | | 单行纯文本，≤200 字符 | 搜索摘要、列表展示、RSS 描述 | | L1 | | YAML frontmatter + Summary + Key Points | 搜索扩展、分析、关联推荐 | | L2 | | 完整 Markdown 正文 | 阅读、发布、深度处理 | L0 和 L1 是系统派生文件，由 和 自动生成，删除后可重建。 Skills 体系 能力以 Markdown 文件定义，自文档化、可版本控制、可扩展： 实现架构 完整工作流 初始化 创建文章 发布 搜索 知识图谱 生成静态站 设计决策 为什么不用数据库？ - 纯文本文件天然支持 Git diff，每次修改都有完整历史 - 可以用任何工具直接操作： 、 、编辑器、脚本 - 零迁移成本，文件就是数据 - 离线可用，无网络依赖 为什么三层上下文？ 搜索时不需要加载完整正文。L0 只有一行，L1 有结构化摘要，只有真正需要时才读 L2。在 1000 篇文章规模下，搜索仍然保持毫秒级响应。 为什么 Skills 用 Markdown 定义？ Skills 本身就是文档。定义文件即说明书，可以用 查看，可以提交到 Git，可以在团队间共享。 配置 站点信息在 中配置，优先级高于全局配置： 参考 - Unix Philosophy — 做一件事，做好它 - Zettelkasten Method — 卡片盒笔记法，知识网络的灵感来源 - FS-as-DB Pattern — 文件系统作为数据库的设计模式 用 Ink 的方式书写，让内容在文件系统中自由流动。
 
 ## Key Points
 
-- source: 文章路径
+- source: 文章 Canonical ID
 - channels: [blog|newsletter|mastodon]
-- OpenClaw Documentation
-- Unix Philosophy
-- Zettelkasten Method
+- 纯文本文件天然支持 Git diff，每次修改都有完整历史
+- 可以用任何工具直接操作： 、 、编辑器、脚本
+- 零迁移成本，文件就是数据
