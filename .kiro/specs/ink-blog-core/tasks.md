@@ -387,7 +387,7 @@
     - 测试 build 后 Git commit 信息为 `build: regenerate static site`（8.12）
     - _Requirements: 8.1, 8.3, 8.8, 8.9, 8.10, 8.12_
 
-  - [ ]* 15.6 写属性测试：HTML 输出完整性
+  - [x]* 15.6 写属性测试：HTML 输出完整性
     - **Property 29: 发布文章过滤** — 随机文章集合（含多种 status），默认模式只生成 published 页面
     - **Property 30: 文章页面路径格式** — 随机 Article，输出路径匹配 `_site/YYYY/MM/DD-slug/index.html`
     - **Property 31: 首页文章顺序一致性** — 随机文章集合，首页顺序与 timeline.json 一致
