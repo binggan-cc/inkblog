@@ -365,7 +365,7 @@
     - 实现 `TemplateRenderer`：优先加载 `_templates/site/` 下的用户模板，缺失时使用内置默认模板字符串（Python 字符串常量）；实现 `render_article(article, output_path)` 和 `render_index(articles, output_path)`
     - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.7, 8.8, 8.9, 8.10_
 
-  - [-] 15.2 实现 `RSSGenerator`（`ink_core/site/rss.py`）
+  - [x] 15.2 实现 `RSSGenerator`（`ink_core/site/rss.py`）
     - 创建 `ink_core/site/rss.py`
     - 实现 `RSSGenerator.generate(articles, output_path, site_config)`：使用 `xml.etree.ElementTree` 生成 Atom feed，包含最近 20 篇已发布文章
     - _Requirements: 8.6_
