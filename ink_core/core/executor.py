@@ -126,7 +126,7 @@ class CommandExecutor:
 
         # --- Git commit (write commands only) ---
         if result.success and intent.action.lower() in _WRITE_COMMANDS:
-            self._maybe_commit(ctx, intent)
+            self._maybe_commit(ctx, intent, result)
 
         # --- Output ---
         if result.success:
@@ -165,7 +165,7 @@ class CommandExecutor:
         except Exception:
             pass  # Session logging failure must not break the command
 
-    def _maybe_commit(self, ctx: ExecutionContext, intent: "Intent") -> None:
+    def _maybe_commit(self, ctx: ExecutionContext, intent: "Intent", result: Any = None) -> None:
         if self._git is None:
             return
         try:
@@ -173,7 +173,7 @@ class CommandExecutor:
                 return
             if not ctx.changed_files:
                 return
-            message = self._commit_message(intent)
+            message = self._commit_message(intent, result)
             ok = self._git.aggregate_commit(ctx.changed_files, message)
             if not ok:
                 print(
@@ -184,13 +184,18 @@ class CommandExecutor:
         except Exception as exc:
             print(f"⚠️  Git error: {exc}", file=sys.stderr)
 
-    def _commit_message(self, intent: "Intent") -> str:
+    def _commit_message(self, intent: "Intent", result: Any = None) -> str:
         from ink_core.git.manager import GitManager
 
         action = intent.action.lower()
         target = intent.target or ""
-        # Extract slug from canonical_id (last path component after last /)
-        slug = target.split("/")[-1] if target else "workspace"
+
+        # For 'new' command, use the actual slug from result.data if available
+        if action == "new" and result is not None and result.data:
+            slug = result.data.get("slug") or result.data.get("canonical_id", "").split("/")[-1] or target
+        else:
+            # Extract slug from canonical_id (last path component after last /)
+            slug = target.split("/")[-1] if target else "workspace"
 
         if action == "new":
             return GitManager.commit_message_create(slug)

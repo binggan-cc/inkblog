@@ -313,8 +313,8 @@
     - **Property 3: 执行输出格式完整性**
     - **Validates: Requirements 1.6, 1.7**
 
-- [~] 13. 集成联调：端到端流程
-  - [ ] 13.1 将所有组件在 `InkCLI.run()` 中串联
+- [-] 13. 集成联调：端到端流程
+  - [x] 13.1 将所有组件在 `InkCLI.run()` 中串联
     - 确保 `ink` 入口点可通过 `pip install -e .` 安装后直接使用
     - ArticleManager 操作后自动调用 IndexManager 更新索引
     - 所有写操作通过 CommandExecutor 统一触发 GitManager.aggregate_commit()

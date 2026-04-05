@@ -1,0 +1,2 @@
+[console_scripts]
+ink = ink_core.cli.parser:main

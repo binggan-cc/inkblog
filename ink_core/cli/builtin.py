@@ -35,6 +35,7 @@ class NewCommand(BuiltinCommand):
 
     def run(self, target: str | None, params: dict) -> SkillResult:
         from ink_core.fs.article import ArticleManager
+        from ink_core.fs.index_manager import IndexManager
         from ink_core.core.errors import PathConflictError
 
         title = target or params.get("title", "")
@@ -57,16 +58,22 @@ class NewCommand(BuiltinCommand):
                 data={"error_type": "PathConflictError"},
             )
 
+        # Update timeline index after article creation (Requirement 2.8)
+        index_mgr = IndexManager(self._workspace_root)
+        index_mgr.update_timeline(article)
+        timeline_path = self._workspace_root / "_index" / "timeline.json"
+
         changed = [
             article.path / "index.md",
             article.path / ".abstract",
             article.path / ".overview",
             article.path / "assets",
+            timeline_path,
         ]
         return SkillResult(
             success=True,
             message=f"Created article: {article.canonical_id}",
-            data={"canonical_id": article.canonical_id, "path": str(article.path)},
+            data={"canonical_id": article.canonical_id, "path": str(article.path), "slug": article.slug},
             changed_files=[p for p in changed if p.exists()],
         )
 
