@@ -51,3 +51,7 @@ class LayerCorruptError(Exception):
 
 class ConfigError(Exception):
     """config.yaml format error."""
+
+
+class AgentModeError(Exception):
+    """Command requires agent mode but current mode is different."""

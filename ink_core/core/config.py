@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 GLOBAL_CONFIG_PATH = Path.home() / ".ink" / "config.yaml"
 
 DEFAULT_CONFIG: dict = {
+    "mode": "human",   # "human" | "agent"
+    "agent": {
+        "agent_name": "OpenClaw",
+        "auto_create_daily": True,
+        "default_category": "note",
+        "disable_human_commands": False,
+        "http_api": {
+            "enabled": False,
+            "port": 4242,
+        },
+    },
     "site": {
         "title": "My Blog",
         "author": "Anonymous",
@@ -85,7 +96,16 @@ class InkConfig:
             data = _deep_merge(data, _load_yaml(ws_path))
 
         self._data = data
+        self.validate_mode()
         return self._data
+
+    def validate_mode(self) -> None:
+        """Raise ConfigError if 'mode' is not 'human' or 'agent'."""
+        mode = self._data.get("mode", "human")
+        if mode not in {"human", "agent"}:
+            raise ConfigError(
+                f"Invalid mode '{mode}' in config. Valid values are: human, agent."
+            )
 
     def save(self, config: dict, *, workspace: bool = True) -> None:
         """Write config to workspace config file (default) or global."""
