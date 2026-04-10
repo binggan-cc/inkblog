@@ -1,17 +1,25 @@
 # Ink Blog Core
 
+[中文](#中文) | [English](#english)
+
+---
+
+<a id="中文"></a>
+
+## 中文
+
 基于 **CLI + Skills + Markdown** 的个人博客系统核心层。
 
 遵循 **FS-as-DB** 哲学：本地文件系统作为唯一数据存储，目录结构表达关系，Markdown 作为内容源，自然语言或显式命令驱动操作执行。
 
 ---
 
-## 目录
+### 目录
 
 - [安装](#安装)
 - [快速开始](#快速开始)
 - [命令参考](#命令参考)
-- [目录结构](#目录结构)
+- [目录结构](#目录结构-1)
 - [文章生命周期](#文章生命周期)
 - [配置](#配置)
 - [静态站生成](#静态站生成)
@@ -22,7 +30,7 @@
 
 ---
 
-## 安装
+### 安装
 
 **环境要求：** Python ≥ 3.11、Git
 
@@ -40,7 +48,7 @@ ink --help
 
 ---
 
-## 快速开始
+### 快速开始
 
 ```bash
 # 1. 在当前目录初始化工作区
@@ -69,9 +77,9 @@ ink build
 
 ---
 
-## 命令参考
+### 命令参考
 
-### `ink init`
+#### `ink init`
 
 初始化工作区。在当前目录创建完整的 `.ink/` 目录结构、默认配置文件，并初始化 Git 仓库。
 
@@ -87,7 +95,7 @@ ink init
 
 ---
 
-### `ink new`
+#### `ink new`
 
 创建新文章，自动生成目录结构和三层上下文文件。
 
@@ -120,7 +128,7 @@ YYYY/MM/DD-slug/
 
 ---
 
-### `ink rebuild`
+#### `ink rebuild`
 
 重建所有文章的派生文件（`.abstract`、`.overview`）和时间线索引（`_index/timeline.json`）。
 
@@ -132,7 +140,7 @@ ink rebuild
 
 ---
 
-### `ink analyze`
+#### `ink analyze`
 
 分析文章内容，提取 Wiki 链接关系，生成知识图谱（`_index/graph.json`）。
 
@@ -152,7 +160,7 @@ Wiki 链接格式：`[[文章名]]` 或 `[[YYYY/MM/DD-slug]]`（精确格式）
 
 ---
 
-### `ink search`
+#### `ink search`
 
 在文章库中搜索，默认先搜 L0（摘要），不足 3 条时自动扩展到 L1（概览）。
 
@@ -166,18 +174,13 @@ ink search "关键词" --fulltext        # 启用全文搜索（L2）
 
 ---
 
-### `ink publish`
+#### `ink publish`
 
 将文章发布到指定渠道。**文章 `status` 必须为 `ready` 才能发布。**
 
 ```bash
-# 发布到单个渠道
 ink publish 2025/03/20-my-post --channels blog
-
-# 发布到多个渠道
 ink publish 2025/03/20-my-post --channels blog,newsletter,mastodon
-
-# 发布所有 ready 状态的文章
 ink publish --all --channels blog
 ```
 
@@ -197,15 +200,12 @@ ink publish --all --channels blog
 
 ---
 
-### `ink build`
+#### `ink build`
 
 生成静态 HTML 站点，输出到 `_site/`（可通过配置修改）。
 
 ```bash
-# 只生成 status=published 的文章（默认）
 ink build
-
-# 生成所有状态的文章
 ink build --all
 ```
 
@@ -216,7 +216,7 @@ ink build --all
 
 ---
 
-### `ink skills list`
+#### `ink skills list`
 
 列出所有已注册的 Skills（内置 + 自定义）。
 
@@ -226,38 +226,26 @@ ink skills list
 
 ---
 
-## 目录结构
+### 目录结构
 
 ```
 项目根目录/
 ├── YYYY/MM/DD-slug/          # 文章目录（按日期组织）
 │   ├── index.md              # L2: 文章正文（Source of Truth）
-│   ├── .abstract             # L0: 单行摘要，≤200 字符（系统派生，可重建）
-│   ├── .overview             # L1: YAML frontmatter + Markdown 章节（系统派生，可重建）
+│   ├── .abstract             # L0: 单行摘要，≤200 字符
+│   ├── .overview             # L1: YAML frontmatter + Markdown 章节
 │   └── assets/               # 图片等资源文件
-│
 ├── .ink/                     # 工作区元数据
-│   ├── config.yaml           # 项目配置（提交到 Git）
-│   ├── sessions/             # 操作记录（不提交到 Git）
-│   ├── publish-history/      # 发布历史（不提交到 Git）
-│   ├── publish-output/       # 发布输出文件（不提交到 Git）
-│   └── skills/               # 自定义 Skill 定义文件（.md）
-│
-├── _index/                   # 全局索引（可重建，不提交到 Git）
-│   ├── timeline.json         # 时间线索引（由 new/rebuild 维护）
-│   └── graph.json            # 知识图谱（由 analyze 生成）
-│
-├── _site/                    # 静态站输出（由 build 生成，不提交到 Git）
-│   ├── index.html
-│   ├── feed.xml
-│   └── YYYY/MM/DD-slug/index.html
-│
+│   ├── config.yaml           # 项目配置
+│   ├── sessions/             # 操作记录
+│   ├── publish-history/      # 发布历史
+│   ├── publish-output/       # 发布输出文件
+│   └── skills/               # 自定义 Skill 定义文件
+├── _index/                   # 全局索引（可重建）
+│   ├── timeline.json
+│   └── graph.json
+├── _site/                    # 静态站输出
 ├── _templates/               # 文章模板
-│   ├── default/              # 默认模板
-│   ├── tech-review/          # 技术评测模板
-│   └── site/                 # 静态站 HTML 模板（可选，覆盖内置样式）
-│
-├── .ink/config.yaml          # 项目配置
 ├── .gitignore
 ├── pyproject.toml
 └── README.md
@@ -265,9 +253,9 @@ ink skills list
 
 ---
 
-## 文章生命周期
+### 文章生命周期
 
-### 状态流转
+**状态流转：**
 
 ```
 draft → review → ready → published → archived
@@ -278,10 +266,10 @@ draft → review → ready → published → archived
 | `draft` | 草稿，新建文章的默认状态 |
 | `review` | 审阅中 |
 | `ready` | 准备发布，`ink publish` 的前置条件 |
-| `published` | 已发布，`ink build` 默认只生成此状态的页面 |
-| `archived` | 已归档，不出现在搜索和列表中 |
+| `published` | 已发布 |
+| `archived` | 已归档 |
 
-### index.md frontmatter 格式
+**index.md frontmatter 格式：**
 
 ```yaml
 ---
@@ -291,13 +279,9 @@ date: "2025-03-20"
 status: "draft"
 tags: ["ai", "python"]
 ---
-
-# 文章标题
-
-正文内容...
 ```
 
-### 三层上下文
+**三层上下文：**
 
 | 层级 | 文件 | 内容 | 用途 |
 |------|------|------|------|
@@ -305,79 +289,56 @@ tags: ["ai", "python"]
 | L1 | `.overview` | YAML frontmatter + Summary + Key Points | 搜索扩展、分析 |
 | L2 | `index.md` | 完整 Markdown 正文 | Source of Truth |
 
-L0 和 L1 是系统派生文件，由 `ink new` 和 `ink rebuild` 自动生成，删除后可重建。
-
 ---
 
-## 配置
+### 配置
 
-### 配置优先级（高 → 低）
+**配置优先级（高 → 低）：**
 
-1. `.ink/config.yaml` — **项目级配置**，随代码提交 Git，优先级最高
-2. `~/.ink/config.yaml` — 全局用户配置，跨项目共享
+1. `.ink/config.yaml` — 项目级配置
+2. `~/.ink/config.yaml` — 全局用户配置
 3. 内置默认值
-
-### 完整配置项
 
 ```yaml
 # .ink/config.yaml
-
 site:
-  title: "My Blog"          # 站点标题，显示在首页和文章页
-  subtitle: ""              # 站点副标题，显示在首页 header
-  author: ""                # 作者名，显示在 footer 和 RSS
-  base_url: ""              # 部署后的完整域名，用于 RSS 链接
-                            # 例：https://blog.example.com
+  title: "My Blog"
+  subtitle: ""
+  author: ""
+  base_url: ""
 
 channels:
   blog:
     type: static
-    output: "./_site"       # 静态站输出目录（相对路径或绝对路径）
+    output: "./_site"
 
 search:
-  engine: keyword           # keyword（默认）| fulltext（全文搜索）
-  top_k: 10                 # 搜索返回最大条数
+  engine: keyword
+  top_k: 10
 
 git:
-  auto_commit: true         # 写操作后自动 Git commit
+  auto_commit: true
 ```
 
 ---
 
-## 静态站生成
-
-### 工作流程
+### 静态站生成
 
 ```
-ink build
-  ↓
-读取 _index/timeline.json（文章顺序）
-  ↓
-过滤 status=published 的文章
-  ↓
-为每篇文章生成 _site/YYYY/MM/DD-slug/index.html
-  ↓
-生成 _site/index.html（首页）
-  ↓
-生成 _site/feed.xml（RSS/Atom）
-  ↓
-触发 Git commit: "build: regenerate static site"
+ink build → 读取 timeline.json → 过滤 published → 生成 HTML → 生成 RSS → Git commit
 ```
 
-### 本地预览
-
-生成后直接用浏览器打开 `_site/index.html`，所有链接均为相对路径，无需 web server。
+**本地预览：**
 
 ```bash
 ink build
 open _site/index.html      # macOS
-# 或
 xdg-open _site/index.html  # Linux
 ```
 
 ---
 
-## 自定义模板
+### 自定义模板
 
 在 `_templates/site/` 下放置 Jinja2 模板文件，优先于内置默认模板。
 
@@ -387,56 +348,15 @@ _templates/site/
 └── index.html      # 首页模板
 ```
 
-### 文章页模板变量
+**文章页模板变量：** `title`、`site_title`、`date`、`tags`、`abstract`、`body_html`、`canonical_id`
 
-| 变量 | 类型 | 说明 |
-|------|------|------|
-| `title` | str | 文章标题 |
-| `site_title` | str | 站点标题 |
-| `date` | str | 文章日期，格式 `YYYY-MM-DD` |
-| `tags` | list[str] | 标签列表 |
-| `abstract` | str | L0 摘要文本 |
-| `body_html` | str | 正文 HTML（已转换，直接输出） |
-| `canonical_id` | str | 文章唯一标识，格式 `YYYY/MM/DD-slug` |
-
-### 首页模板变量
-
-| 变量 | 类型 | 说明 |
-|------|------|------|
-| `site_title` | str | 站点标题 |
-| `site_subtitle` | str | 站点副标题 |
-| `site_author` | str | 作者名 |
-| `year` | str | 当前年份 |
-| `articles` | list[dict] | 文章列表（见下） |
-| `total_articles` | int | 文章总数 |
-| `total_words` | str | 总字数估算，如 `~48k` |
-| `date_range` | str | 日期范围，如 `2025-03-15 至 2026-04-04` |
-
-每篇文章 dict 包含：`canonical_id`、`title`、`date`、`tags`、`abstract`、`word_count`
-
-### 模板示例
-
-```html
-<!-- _templates/site/article.html -->
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <title>{{ title }} - {{ site_title }}</title>
-</head>
-<body>
-  <nav><a href="../../../index.html">← 返回</a></nav>
-  <h1>{{ title }}</h1>
-  <p>{{ date }} · {% for t in tags %}#{{ t }} {% endfor %}</p>
-  <div>{{ body_html }}</div>
-</body>
-</html>
-```
+**首页模板变量：** `site_title`、`site_subtitle`、`site_author`、`year`、`articles`、`total_articles`、`total_words`、`date_range`
 
 ---
 
-## 自定义 Skills
+### 自定义 Skills
 
-在 `.ink/skills/` 下创建 `.md` 文件即可注册新 Skill，`ink init` 后自动加载。
+在 `.ink/skills/` 下创建 `.md` 文件即可注册新 Skill。
 
 ```yaml
 ---
@@ -445,120 +365,413 @@ version: "1.0"
 description: 生成文章摘要
 context_requirement: L2
 ---
-
-## 输入
-- source: 文章 Canonical ID
-
-## 执行流程
-1. 读取 index.md 内容
-2. 生成摘要
-3. 更新 .abstract
 ```
 
 **必填 frontmatter 字段：** `skill`、`version`、`context_requirement`
 
-缺少任一字段时，该文件会被跳过并输出警告。
-
 ---
 
-## 部署
+### 部署
 
 `ink build` 生成的 `_site/` 是纯静态文件，可部署到任何静态托管服务。
 
-### GitHub Pages
-
 ```bash
-# 方式一：直接推送 _site/ 到 gh-pages 分支
+# GitHub Pages
 git subtree push --prefix _site origin gh-pages
 
-# 方式二：使用 GitHub Actions（推荐）
-# 在 .github/workflows/deploy.yml 中配置：
-# 1. 安装依赖：pip install -e .
-# 2. 执行构建：ink build
-# 3. 部署 _site/ 到 GitHub Pages
+# Netlify / Vercel
+# 构建命令: pip install -e . && ink build
+# 发布目录: _site
+
+# 本地预览
+cd _site && python -m http.server 8000
 ```
 
-在 `.ink/config.yaml` 中设置 `site.base_url` 为 GitHub Pages 地址，RSS 链接会自动使用完整 URL：
+在 `.ink/config.yaml` 中设置 `site.base_url` 以生成正确的 RSS 链接。
 
-```yaml
-site:
-  base_url: "https://username.github.io/repo-name"
-```
+---
 
-### Netlify / Vercel
+### 开发
 
 ```bash
-# 构建命令
-pip install -e . && ink build
-
-# 发布目录
-_site
+pip install -e ".[dev]"
+pytest tests/ -v
 ```
 
-### 本地 HTTP 服务器
+**依赖：** `pyyaml>=6.0`、`jinja2>=3.1`
+
+**开发依赖：** `pytest>=7.0`、`hypothesis>=6.0`
+
+
+---
+
+<a id="english"></a>
+
+## English
+
+A personal blog system core layer built on **CLI + Skills + Markdown**.
+
+Follows the **FS-as-DB** philosophy: the local filesystem is the sole data store, directory structure expresses relationships, Markdown serves as the content source, and operations are driven by natural language or explicit commands.
+
+---
+
+### Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Command Reference](#command-reference)
+- [Directory Structure](#directory-structure)
+- [Article Lifecycle](#article-lifecycle)
+- [Configuration](#configuration)
+- [Static Site Generation](#static-site-generation)
+- [Custom Templates](#custom-templates)
+- [Custom Skills](#custom-skills)
+- [Deployment](#deployment)
+- [Development](#development)
+
+---
+
+### Installation
+
+**Requirements:** Python ≥ 3.11, Git
 
 ```bash
-cd _site
-python -m http.server 8000
-# 访问 http://localhost:8000
+git clone <repo-url>
+cd inkblog
+pip install -e .
+ink --help
 ```
 
 ---
 
-## 开发
+### Quick Start
 
 ```bash
-# 安装（含开发依赖）
+# 1. Initialize workspace
+ink init
+
+# 2. Edit site config
+#    Update title, subtitle, author in .ink/config.yaml
+
+# 3. Create your first article
+ink new "My First Post" --tags ai,python
+
+# 4. Edit article content
+#    Open YYYY/MM/DD-slug/index.md and write
+
+# 5. Mark article as ready
+#    Set status to "ready" in index.md frontmatter
+
+# 6. Publish
+ink publish YYYY/MM/DD-slug --channels blog
+
+# 7. Build static site
+ink build
+
+# 8. Preview
+open _site/index.html
+```
+
+---
+
+### Command Reference
+
+#### `ink init`
+
+Initialize workspace. Creates the `.ink/` directory structure, default config, and initializes a Git repository.
+
+```bash
+ink init
+```
+
+---
+
+#### `ink new`
+
+Create a new article with auto-generated directory structure and three-layer context files.
+
+```bash
+ink new "Article Title"
+ink new "Article Title" --date 2025-06-01
+ink new "Article Title" --slug my-custom-slug
+ink new "Article Title" --tags ai,python,blog
+ink new "Article Title" --template tech-review
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `title` | Article title (required) | — |
+| `--date` | Article date (`YYYY-MM-DD`) | Today |
+| `--slug` | Custom URL slug | Auto-generated from title |
+| `--tags` | Comma-separated tag list | Empty |
+| `--template` | Template name from `_templates/` | `default` |
+
+**Generated files:**
+```
+YYYY/MM/DD-slug/
+├── index.md      # Article body (edit manually)
+├── .abstract     # L0 summary (auto-generated, ≤200 chars)
+├── .overview     # L1 overview (auto-generated, YAML + Markdown)
+└── assets/       # Resource directory
+```
+
+---
+
+#### `ink rebuild`
+
+Rebuild all derived files (`.abstract`, `.overview`) and timeline index (`_index/timeline.json`).
+
+```bash
+ink rebuild
+```
+
+---
+
+#### `ink analyze`
+
+Analyze article content, extract wiki-link relationships, and generate a knowledge graph (`_index/graph.json`).
+
+```bash
+ink analyze 2025/03/20-my-post    # Single article
+ink analyze --all                  # Entire library
+```
+
+Wiki link format: `[[Article Name]]` or `[[YYYY/MM/DD-slug]]`
+
+---
+
+#### `ink search`
+
+Search the article library. Searches L0 (abstracts) first, auto-expands to L1 (overviews) if fewer than 3 results.
+
+```bash
+ink search "keyword"
+ink search "keyword" --tag ai          # Filter by tag
+ink search "keyword" --fulltext        # Full-text search (L2)
+```
+
+**Ranking (highest to lowest):** Title match → Tag match → L0 match → L1 match → L2 match. Within the same level, sorted by hit count descending, then by date descending.
+
+---
+
+#### `ink publish`
+
+Publish articles to specified channels. **Article `status` must be `ready`.**
+
+```bash
+ink publish 2025/03/20-my-post --channels blog
+ink publish 2025/03/20-my-post --channels blog,newsletter,mastodon
+ink publish --all --channels blog
+```
+
+| Channel | Output Location | Format |
+|---------|----------------|--------|
+| `blog` | `.ink/publish-output/blog/` | Markdown with `published_at` |
+| `newsletter` | `.ink/publish-output/newsletter/` | Markdown with summary intro |
+| `mastodon` | `.ink/publish-output/mastodon/` | Plain text, ≤500 chars |
+
+After publishing: status updates to `published`, `published_at` timestamp is written, `_index/timeline.json` is updated, and publish history is recorded.
+
+---
+
+#### `ink build`
+
+Generate a static HTML site to `_site/`.
+
+```bash
+ink build          # Published articles only (default)
+ink build --all    # All articles
+```
+
+**Output:**
+- `_site/index.html` — Homepage (article list + stats)
+- `_site/YYYY/MM/DD-slug/index.html` — Article pages
+- `_site/feed.xml` — RSS/Atom feed (latest 20 published articles)
+
+---
+
+#### `ink skills list`
+
+List all registered skills (built-in + custom).
+
+```bash
+ink skills list
+```
+
+---
+
+### Directory Structure
+
+```
+project-root/
+├── YYYY/MM/DD-slug/          # Article directories (organized by date)
+│   ├── index.md              # L2: Full article (Source of Truth)
+│   ├── .abstract             # L0: One-line summary, ≤200 chars
+│   ├── .overview             # L1: YAML frontmatter + Markdown sections
+│   └── assets/               # Images and resources
+├── .ink/                     # Workspace metadata
+│   ├── config.yaml           # Project config
+│   ├── sessions/             # Operation logs
+│   ├── publish-history/      # Publish history
+│   ├── publish-output/       # Publish output files
+│   └── skills/               # Custom skill definitions
+├── _index/                   # Global indexes (rebuildable)
+│   ├── timeline.json
+│   └── graph.json
+├── _site/                    # Static site output
+├── _templates/               # Article templates
+├── .gitignore
+├── pyproject.toml
+└── README.md
+```
+
+---
+
+### Article Lifecycle
+
+**Status flow:**
+
+```
+draft → review → ready → published → archived
+```
+
+| Status | Description |
+|--------|-------------|
+| `draft` | Draft, default for new articles |
+| `review` | Under review |
+| `ready` | Ready to publish, prerequisite for `ink publish` |
+| `published` | Published |
+| `archived` | Archived |
+
+**index.md frontmatter format:**
+
+```yaml
+---
+title: "Article Title"
+slug: "article-slug"
+date: "2025-03-20"
+status: "draft"
+tags: ["ai", "python"]
+---
+```
+
+**Three-layer context:**
+
+| Layer | File | Content | Purpose |
+|-------|------|---------|---------|
+| L0 | `.abstract` | Plain text, ≤200 chars | Search summary, RSS description |
+| L1 | `.overview` | YAML frontmatter + Summary + Key Points | Extended search, analysis |
+| L2 | `index.md` | Full Markdown body | Source of Truth |
+
+---
+
+### Configuration
+
+**Priority (high → low):**
+
+1. `.ink/config.yaml` — Project-level config
+2. `~/.ink/config.yaml` — Global user config
+3. Built-in defaults
+
+```yaml
+# .ink/config.yaml
+site:
+  title: "My Blog"
+  subtitle: ""
+  author: ""
+  base_url: ""
+
+channels:
+  blog:
+    type: static
+    output: "./_site"
+
+search:
+  engine: keyword
+  top_k: 10
+
+git:
+  auto_commit: true
+```
+
+---
+
+### Static Site Generation
+
+```
+ink build → Read timeline.json → Filter published → Generate HTML → Generate RSS → Git commit
+```
+
+**Local preview:**
+
+```bash
+ink build
+open _site/index.html      # macOS
+xdg-open _site/index.html  # Linux
+```
+
+---
+
+### Custom Templates
+
+Place Jinja2 template files in `_templates/site/` to override built-in defaults.
+
+```
+_templates/site/
+├── article.html    # Article page template
+└── index.html      # Homepage template
+```
+
+**Article template variables:** `title`, `site_title`, `date`, `tags`, `abstract`, `body_html`, `canonical_id`
+
+**Homepage template variables:** `site_title`, `site_subtitle`, `site_author`, `year`, `articles`, `total_articles`, `total_words`, `date_range`
+
+---
+
+### Custom Skills
+
+Create `.md` files in `.ink/skills/` to register new skills.
+
+```yaml
+---
+skill: summarize
+version: "1.0"
+description: Generate article summary
+context_requirement: L2
+---
+```
+
+**Required frontmatter fields:** `skill`, `version`, `context_requirement`
+
+---
+
+### Deployment
+
+The `_site/` directory generated by `ink build` contains pure static files, deployable to any static hosting service.
+
+```bash
+# GitHub Pages
+git subtree push --prefix _site origin gh-pages
+
+# Netlify / Vercel
+# Build command: pip install -e . && ink build
+# Publish directory: _site
+
+# Local preview
+cd _site && python -m http.server 8000
+```
+
+Set `site.base_url` in `.ink/config.yaml` for correct RSS links.
+
+---
+
+### Development
+
+```bash
 pip install -e ".[dev]"
-
-# 运行全量测试
-pytest tests/
-
-# 详细输出
 pytest tests/ -v
-
-# 运行单个测试文件
-pytest tests/test_site.py -v
 ```
 
-### 项目结构
+**Dependencies:** `pyyaml>=6.0`, `jinja2>=3.1`
 
-```
-ink_core/
-├── cli/
-│   ├── builtin.py    # 内置命令：new, init, rebuild, build, skills
-│   ├── intent.py     # NLParser, IntentRouter
-│   └── parser.py     # CLI 入口（argparse + NLP）
-├── core/
-│   ├── config.py     # 分层配置管理
-│   ├── executor.py   # 命令执行事务协调器
-│   ├── session.py    # 操作记录
-│   ├── publish_history.py
-│   └── errors.py     # 领域异常
-├── fs/
-│   ├── article.py    # Article 数据模型 + ArticleManager
-│   ├── layer_generator.py  # L0/L1 生成器
-│   ├── index_manager.py    # timeline.json / graph.json
-│   └── markdown.py   # frontmatter 解析工具
-├── git/
-│   └── manager.py    # Git 操作封装
-├── site/
-│   ├── builder.py    # SiteBuilder
-│   ├── renderer.py   # Jinja2 模板渲染器
-│   └── rss.py        # RSS/Atom feed 生成器
-└── skills/
-    ├── publish.py    # PublishSkill + 渠道适配器
-    ├── analyze.py    # AnalyzeSkill + Wiki 链接解析
-    ├── search.py     # SearchSkill（分层搜索）
-    ├── registry.py   # Skill 注册表
-    └── loader.py     # Skill 文件加载器
-```
-
-### 依赖
-
-| 包 | 用途 |
-|----|------|
-| `pyyaml>=6.0` | YAML 解析（frontmatter、配置文件） |
-| `jinja2>=3.1` | 静态站 HTML 模板渲染 |
-
-开发依赖：`pytest>=7.0`、`hypothesis>=6.0`（属性测试）
+**Dev dependencies:** `pytest>=7.0`, `hypothesis>=6.0`
