@@ -14,6 +14,12 @@ def _workspace_root() -> Path:
 
 def _build_executor(workspace_root: Path):
     """Wire up all components and return a CommandExecutor."""
+    from ink_core.agent.commands.log_command import LogCommand
+    from ink_core.agent.commands.recall_command import RecallCommand
+    from ink_core.agent.commands.serve_command import ServeCommand
+    from ink_core.agent.commands.skill_list_command import SkillListCommand
+    from ink_core.agent.commands.skill_record_command import SkillRecordCommand
+    from ink_core.agent.commands.skill_save_command import SkillSaveCommand
     from ink_core.cli.builtin import BuildCommand, InitCommand, NewCommand, RebuildCommand, SkillsListCommand
     from ink_core.cli.intent import IntentRouter
     from ink_core.core.executor import CommandExecutor
@@ -35,6 +41,13 @@ def _build_executor(workspace_root: Path):
         "rebuild": RebuildCommand(workspace_root),
         "skills": SkillsListCommand(registry),
         "build": BuildCommand(workspace_root),
+        # Agent commands
+        "log": LogCommand(workspace_root),
+        "recall": RecallCommand(workspace_root),
+        "serve": ServeCommand(workspace_root),
+        "skill-record": SkillRecordCommand(workspace_root),
+        "skill-save": SkillSaveCommand(workspace_root),
+        "skill-list": SkillListCommand(workspace_root),
     }
 
     router = IntentRouter(builtins=builtins, skill_registry=registry, workspace_root=workspace_root)
@@ -68,6 +81,44 @@ def _intent_from_namespace(ns: argparse.Namespace):
             params["template"] = ns.template
 
     elif cmd == "init":
+        target = None
+        if getattr(ns, "mode", None):
+            params["mode"] = ns.mode
+        if getattr(ns, "agent_name", None):
+            params["agent_name"] = ns.agent_name
+
+    elif cmd == "log":
+        target = getattr(ns, "content", None)
+        if getattr(ns, "category", None):
+            params["category"] = ns.category
+
+    elif cmd == "recall":
+        target = getattr(ns, "query", None) or ""
+        if getattr(ns, "category", None):
+            params["category"] = ns.category
+        if getattr(ns, "since", None):
+            params["since"] = ns.since
+        if getattr(ns, "limit", None) is not None:
+            params["limit"] = ns.limit
+
+    elif cmd == "serve":
+        target = None
+
+    elif cmd == "skill-record":
+        target = getattr(ns, "skill_name", None)
+        if getattr(ns, "source", None):
+            params["source"] = ns.source
+        if getattr(ns, "version", None):
+            params["version"] = ns.version
+        if getattr(ns, "path", None):
+            params["path"] = ns.path
+
+    elif cmd == "skill-save":
+        target = getattr(ns, "skill_name", None)
+        if getattr(ns, "file", None):
+            params["file"] = ns.file
+
+    elif cmd == "skill-list":
         target = None
 
     elif cmd == "rebuild":
@@ -117,7 +168,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command")
 
     # init
-    sub.add_parser("init", help="Initialise a Git repository in the workspace")
+    p_init = sub.add_parser("init", help="Initialise a Git repository in the workspace")
+    p_init.add_argument("--mode", choices=["human", "agent"], help="Workspace mode")
+    p_init.add_argument("--agent-name", dest="agent_name", help="Agent name (agent mode, default: OpenClaw)")
 
     # new
     p_new = sub.add_parser("new", help="Create a new article")
@@ -157,6 +210,44 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     # build
     p_build = sub.add_parser("build", help="Generate static HTML site")
     p_build.add_argument("--all", action="store_true", help="Include all articles (not just published)")
+
+    from ink_core.agent import VALID_CATEGORIES
+
+    # log (agent mode)
+    p_log = sub.add_parser("log", help="Append a log entry to today's journal (agent mode)")
+    p_log.add_argument("content", help="Entry content")
+    p_log.add_argument(
+        "--category",
+        choices=VALID_CATEGORIES,
+        help=f"Entry category ({', '.join(VALID_CATEGORIES)}). Default: from config",
+    )
+
+    # recall (agent mode)
+    p_recall = sub.add_parser("recall", help="Search past journal entries (agent mode)")
+    p_recall.add_argument("query", nargs="?", default="", help="Search query (empty = latest entries)")
+    p_recall.add_argument("--category", choices=VALID_CATEGORIES, help="Filter by category")
+    p_recall.add_argument("--since", metavar="YYYY-MM-DD", help="Only entries on or after this date")
+    p_recall.add_argument("--limit", type=int, default=20, help="Max results (1–500, default 20)")
+
+    # serve (agent mode)
+    sub.add_parser("serve", help="Start HTTP API server (agent mode, requires http_api.enabled: true)")
+
+    # skill-record (agent mode)
+    p_srec = sub.add_parser("skill-record", help="Record an external skill (agent mode)")
+    p_srec.add_argument("skill_name", help="Skill name")
+    p_srec.add_argument("--source", required=False, help="Source URL (required)")
+    p_srec.add_argument("--version", default="", help="Skill version")
+    p_srec.add_argument("--path", default="", help="Install path")
+
+    # skill-save (agent mode)
+    p_ssave = sub.add_parser("skill-save", help="Save a custom skill .md file (agent mode)")
+    p_ssave.add_argument("skill_name", help="Skill name")
+    p_ssave.add_argument("--file", required=False, help="Path to the .md skill file")
+
+    # skill-list (agent mode)
+    sub.add_parser("skill-list", help="List all recorded skills (agent mode)")
+
+    # Add _index/skills.json to .gitignore note (handled in code, documented here)
 
     return parser
 
