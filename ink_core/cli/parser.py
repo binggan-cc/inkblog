@@ -37,7 +37,7 @@ def _build_executor(workspace_root: Path):
         "build": BuildCommand(workspace_root),
     }
 
-    router = IntentRouter(builtins=builtins, skill_registry=registry)
+    router = IntentRouter(builtins=builtins, skill_registry=registry, workspace_root=workspace_root)
     session_logger = SessionLogger(workspace_root)
     git_manager = GitManager(workspace_root)
 

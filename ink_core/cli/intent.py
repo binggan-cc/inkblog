@@ -172,9 +172,13 @@ class IntentRouter:
         self,
         builtins: dict[str, "BuiltinCommand"],
         skill_registry: Any,  # SkillRegistry
+        workspace_root: Any = None,  # Path | None
     ) -> None:
         self._builtins = builtins
         self._registry = skill_registry
+        self._workspace_root = workspace_root
+
+    _HUMAN_COMMANDS = {"publish", "build", "search", "analyze", "rebuild"}
 
     def resolve(self, intent: Intent) -> RouteResult:
         """Resolve an Intent to a RouteResult.
@@ -183,6 +187,12 @@ class IntentRouter:
             RouteResult whose ``target`` is a BuiltinCommand, Skill, or None.
         """
         action = intent.action.lower()
+
+        # 0. Human-command guard for agent mode with disable_human_commands=true
+        if action in self._HUMAN_COMMANDS and self._workspace_root is not None:
+            guard = self._human_command_guard(action)
+            if guard is not None:
+                return guard
 
         # 1. Check built-in commands first
         builtin = self._builtins.get(action)
@@ -201,3 +211,32 @@ class IntentRouter:
             error=f"Unknown command or skill: '{intent.action}'",
             candidates=available,
         )
+
+    def _human_command_guard(self, action: str) -> "RouteResult | None":
+        """Return a failing RouteResult if agent mode disables human commands, else None."""
+        try:
+            from ink_core.core.config import InkConfig
+            from ink_core.skills.base import SkillResult
+            from ink_core.cli.builtin import BuiltinCommand
+
+            config = InkConfig(workspace_root=self._workspace_root)
+            config.load()
+            if (
+                config.get("mode") == "agent"
+                and config.get("agent.disable_human_commands") is True
+            ):
+                class _BlockedCommand(BuiltinCommand):
+                    @property
+                    def name(self) -> str:
+                        return action
+
+                    def run(self, target, params) -> SkillResult:
+                        return SkillResult(
+                            success=False,
+                            message=f"Command '{action}' is disabled in agent mode",
+                        )
+
+                return RouteResult(target=_BlockedCommand())
+        except Exception:
+            pass
+        return None
