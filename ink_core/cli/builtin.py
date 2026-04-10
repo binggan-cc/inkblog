@@ -93,7 +93,16 @@ class InitCommand(BuiltinCommand):
         return "init"
 
     def run(self, target: str | None, params: dict) -> SkillResult:
+        from ink_core.core.config import InkConfig, _deep_merge, _load_yaml
         from ink_core.git.manager import GitManager
+
+        # Handle --mode / --agent-name agent init params
+        mode = params.get("mode")
+        if mode is not None and mode not in ("human", "agent"):
+            return SkillResult(
+                success=False,
+                message=f"Invalid --mode '{mode}'. Valid values: human, agent",
+            )
 
         changed: list[Path] = []
 
@@ -131,7 +140,41 @@ class InitCommand(BuiltinCommand):
 
         # 3. Git init
         git = GitManager(self._workspace_root)
-        if git.is_repo():
+        already_initialised = git.is_repo()
+
+        # 4. Apply agent mode config if --mode agent requested
+        if mode is not None:
+            config_path = self._workspace_root / ".ink" / "config.yaml"
+            agent_name = params.get("agent_name", "OpenClaw")
+            agent_block: dict = {
+                "mode": mode,
+                "agent": {
+                    "agent_name": agent_name,
+                    "auto_create_daily": True,
+                    "default_category": "note",
+                    "disable_human_commands": False,
+                    "http_api": {"enabled": False, "port": 4242},
+                },
+            }
+            if config_path.exists():
+                existing = _load_yaml(config_path)
+                merged = _deep_merge(existing, agent_block)
+            else:
+                merged = agent_block
+            import yaml as _yaml
+            config_path.write_text(
+                _yaml.dump(merged, allow_unicode=True, default_flow_style=False),
+                encoding="utf-8",
+            )
+            changed.append(config_path)
+            if already_initialised:
+                return SkillResult(
+                    success=True,
+                    message=f"Updated workspace config: mode={mode}, agent_name={agent_name}",
+                    changed_files=changed,
+                )
+
+        if already_initialised:
             return SkillResult(
                 success=True,
                 message="Workspace already initialised.",
