@@ -601,3 +601,95 @@ ink --profile personal log "今天的笔记"
 | Agent 命令复用 BuiltinCommand 接口 | 统一 SkillResult 返回类型，编排层无需区分 |
 | HTTP API 用标准库实现 | 避免引入 flask/fastapi 依赖，serve 是可选功能 |
 | MCP 接入时的依赖策略 | 待定：MCP SDK 可能引入新依赖，需评估是否作为 optional extras |
+
+---
+
+## 十三、版本命名与发版规则
+
+### 版本号规范
+
+遵循 [Semantic Versioning 2.0.0](https://semver.org/)，格式为 `MAJOR.MINOR.PATCH`：
+
+| 位 | 含义 | 何时递增 | 示例 |
+|---|---|---|---|
+| MAJOR | 不兼容的 API 变更 | CLI 命令签名变更、配置格式不兼容、数据模型破坏性变更 | `1.0.0` |
+| MINOR | 向后兼容的新功能 | 新增命令、新增配置项、新增扩展点 | `0.3.0` |
+| PATCH | 向后兼容的缺陷修复 | Bug 修复、文档修正、测试补充、性能优化 | `0.3.1` |
+
+**1.0.0 之前**（当前阶段）：MINOR 版本可包含小范围的不兼容变更，但需在 release note 中明确标注 `BREAKING`。
+
+### 版本号存放位置
+
+版本号在以下两处维护，发版时必须同步更新：
+
+1. `pyproject.toml` → `[project].version`（唯一真相源）
+2. `README.md` → 顶部版本标注
+
+### Git Tag 规范
+
+- 格式：`v{MAJOR}.{MINOR}.{PATCH}`，如 `v0.3.0`
+- 使用 annotated tag（`git tag -a`），包含 release note
+- Tag message 格式：
+
+```
+v0.3.0 - 简短主题描述
+
+Features:
+- 功能点 1
+- 功能点 2
+
+Fixes:
+- 修复点 1
+
+Breaking Changes:（如有）
+- 变更说明
+```
+
+### 发版流程
+
+```bash
+# 1. 确保在 main 分支，工作区干净
+git checkout main
+git status
+
+# 2. 运行全量测试
+pytest tests/ -v
+
+# 3. 更新版本号
+#    - pyproject.toml: version = "X.Y.Z"
+#    - README.md: > vX.Y.Z
+
+# 4. 提交 release commit
+git add pyproject.toml README.md
+git commit -m "release: vX.Y.Z - 简短描述"
+
+# 5. 打 annotated tag
+git tag -a vX.Y.Z -m "vX.Y.Z - 简短描述
+
+Features:
+- ...
+
+Fixes:
+- ..."
+
+# 6. 推送（含 tag）
+git push origin main --tags
+```
+
+### 分支策略
+
+| 分支 | 用途 | 合并方式 |
+|------|------|---------|
+| `main` | 稳定版本，所有 release tag 打在此分支 | — |
+| `feature/*` | 功能开发分支，从 main 创建 | `--no-ff` merge 到 main |
+| `fix/*` | 缺陷修复分支（可选，小修复可直接在 main 提交） | fast-forward 或 `--no-ff` |
+
+- feature 分支合并后不删除（保留历史），但不再继续开发
+- 不使用 develop 分支，main 即开发主线（项目规模不需要 gitflow）
+
+### 版本历史
+
+| 版本 | 日期 | 主题 |
+|------|------|------|
+| v0.2.0 | 2026-04-05 | 静态站生成、分层配置、改进 init |
+| v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |

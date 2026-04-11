@@ -533,6 +533,15 @@ pytest tests/ -v
 
 **开发依赖：** `pytest>=7.0`、`hypothesis>=6.0`
 
+**版本管理：** 遵循 [Semantic Versioning](https://semver.org/)（`MAJOR.MINOR.PATCH`）。版本号维护在 `pyproject.toml` 和 `README.md` 顶部。发版时打 annotated tag（`git tag -a vX.Y.Z`）。详细的发版流程和分支策略见 `.kiro/specs/ink-kernel-architecture/design.md` 第十三章。
+
+**版本历史：**
+
+| 版本 | 日期 | 主题 |
+|------|------|------|
+| v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |
+| v0.2.0 | 2026-04-05 | 静态站生成、分层配置、改进 init |
+
 
 ---
 
@@ -1029,3 +1038,12 @@ pytest tests/ -v
 **Dependencies:** `pyyaml>=6.0`, `jinja2>=3.1`
 
 **Dev dependencies:** `pytest>=7.0`, `hypothesis>=6.0`
+
+**Versioning:** Follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`). Version is maintained in `pyproject.toml` and the top of `README.md`. Releases use annotated tags (`git tag -a vX.Y.Z`). See `.kiro/specs/ink-kernel-architecture/design.md` Chapter 13 for the full release process and branching strategy.
+
+**Version History:**
+
+| Version | Date | Summary |
+|---------|------|---------|
+| v0.3.0 | 2026-04-11 | Agent mode (log/recall/serve/skill-*), property tests, docs consolidation |
+| v0.2.0 | 2026-04-05 | Static site generation, layered config, improved init |
