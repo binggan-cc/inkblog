@@ -152,7 +152,7 @@ class TestFullArticleLifecycle:
         assert result.success
         assert "blog" in result.message
 
-    def test_publish_updates_status_to_published(self, ink_dir: Path) -> None:
+    def test_publish_updates_status_to_drafted(self, ink_dir: Path) -> None:
         manager = ArticleManager(ink_dir)
         article = manager.create("Publish Status Test", date="2025-06-07")
 
@@ -167,8 +167,8 @@ class TestFullArticleLifecycle:
         from ink_core.fs.markdown import parse_frontmatter
         updated = index_path.read_text(encoding="utf-8")
         meta, _ = parse_frontmatter(updated)
-        assert meta["status"] == "published"
-        assert "published_at" in meta
+        assert meta["status"] == "drafted"
+        assert "published_at" not in meta
 
     def test_publish_creates_history_record(self, ink_dir: Path) -> None:
         manager = ArticleManager(ink_dir)

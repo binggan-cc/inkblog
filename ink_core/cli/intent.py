@@ -54,6 +54,12 @@ _NL_RULES: list[tuple[re.Pattern, str, int | None, Any]] = [
         1,
         lambda m: {"channels": [c.strip() for c in m.group(2).split(",")] if m.group(2) else []},
     ),
+    (
+        re.compile(r"(?:syndicate|推送)\s+([^\s]+)", re.IGNORECASE),
+        "syndicate",
+        1,
+        _no_params,
+    ),
     # analyze --all / 分析全库
     (
         re.compile(r"(?:analyze|分析)\s+--all", re.IGNORECASE),
@@ -117,7 +123,7 @@ _NL_RULES: list[tuple[re.Pattern, str, int | None, Any]] = [
     ),
 ]
 
-_AVAILABLE_ACTIONS = ["publish", "analyze", "search", "new", "rebuild", "init", "skills"]
+_AVAILABLE_ACTIONS = ["publish", "syndicate", "analyze", "search", "new", "rebuild", "init", "skills"]
 
 
 class NLParser:
@@ -178,7 +184,7 @@ class IntentRouter:
         self._registry = skill_registry
         self._workspace_root = workspace_root
 
-    _HUMAN_COMMANDS = {"publish", "build", "search", "analyze", "rebuild"}
+    _HUMAN_COMMANDS = {"publish", "syndicate", "build", "search", "analyze", "rebuild", "doctor"}
 
     def resolve(self, intent: Intent) -> RouteResult:
         """Resolve an Intent to a RouteResult.

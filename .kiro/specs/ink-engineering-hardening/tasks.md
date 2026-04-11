@@ -192,16 +192,16 @@
 
 ### v0.4.1 — 语义与产品层清晰化（后续版本）
 
-- [ ] 12. 硬伤 2 完整扩展：发布状态机
-  - [ ] 12.1 `ink publish` 改为设置 `drafted`，新增 `ink syndicate` 和 `ink publish --push`
-  - [ ] 12.2 `ink build --include-drafted` 预览模式
-  - [ ] 12.3 `ink doctor --migrate-status` 迁移工具
+- [x] 12. 硬伤 2 完整扩展：发布状态机
+  - [x] 12.1 `ink publish` 改为设置 `drafted`，新增 `ink syndicate` 和 `ink publish --push`
+  - [x] 12.2 `ink build --include-drafted` 预览模式
+  - [x] 12.3 `ink doctor --migrate-status` 迁移工具
 
-- [ ] 13. 硬伤 5：CLI 帮助文本标注
-  - [ ] 13.1 帮助文本 `[核心]`/`[技能]`/`[Agent]` 前缀标注 — _Requirements: 5.1–5.4, 5.6_
-  - [ ] 13.2 `ink skills list` 区分内置/自定义技能 — _Requirements: 5.5_
-  - [ ] 13.3 写单元测试 — _Requirements: 5.1–5.3, 5.5_
-  - [ ] 13.4 更新 README / CLI 使用说明
+- [x] 13. 硬伤 5：CLI 帮助文本标注
+  - [x] 13.1 帮助文本 `[核心]`/`[技能]`/`[Agent]` 前缀标注 — _Requirements: 5.1–5.4, 5.6_
+  - [x] 13.2 `ink skills list` 区分内置/自定义技能 — _Requirements: 5.5_
+  - [x] 13.3 写单元测试 — _Requirements: 5.1–5.3, 5.5_
+  - [x] 13.4 更新 README / CLI 使用说明
     - 说明哪些是 [核心] 命令、哪些是 [技能] 命令
     - `ink skills list` 如何区分内置/自定义技能
     - 与 CLI 帮助标注保持一致

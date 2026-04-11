@@ -225,15 +225,16 @@ class TestFileDefinedSkill:
 # ---------------------------------------------------------------------------
 
 class TestCreateWithBuiltins:
-    def test_creates_registry_with_three_builtins(self, ink_dir):
+    def test_creates_registry_with_builtins(self, ink_dir):
         registry = SkillRegistry.create_with_builtins(ink_dir)
         assert registry.resolve("publish") is not None
+        assert registry.resolve("syndicate") is not None
         assert registry.resolve("analyze") is not None
         assert registry.resolve("search") is not None
 
-    def test_list_all_has_three_skills(self, ink_dir):
+    def test_list_all_has_four_skills(self, ink_dir):
         registry = SkillRegistry.create_with_builtins(ink_dir)
-        assert len(registry.list_all()) == 3
+        assert len(registry.list_all()) == 4
 
     def test_builtins_are_not_file_defined(self, ink_dir):
         registry = SkillRegistry.create_with_builtins(ink_dir)

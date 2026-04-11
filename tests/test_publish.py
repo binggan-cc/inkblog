@@ -13,6 +13,7 @@ from ink_core.skills.publish import (
     MastodonDraftAdapter,
     NewsletterFileAdapter,
     PublishSkill,
+    SyndicateSkill,
 )
 from ink_core.fs.article import ArticleManager
 from ink_core.fs.markdown import parse_frontmatter
@@ -258,20 +259,21 @@ class TestPublishSkillUnsupportedChannel:
 
 
 class TestPublishSkillSuccess:
-    def test_updates_index_md_status_to_published(self, ink_dir: Path, sample_ready_article_dir: Path):
+    def test_updates_index_md_status_to_drafted(self, ink_dir: Path, sample_ready_article_dir: Path):
         skill = PublishSkill(ink_dir)
         skill.execute("2025/04/01-ready-article", {"channels": ["blog"]})
+
+        index_path = sample_ready_article_dir / "index.md"
+        meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
+        assert meta["status"] == "drafted"
+
+    def test_push_writes_published_at_timestamp(self, ink_dir: Path, sample_ready_article_dir: Path):
+        skill = PublishSkill(ink_dir)
+        skill.execute("2025/04/01-ready-article", {"channels": ["blog"], "push": True})
 
         index_path = sample_ready_article_dir / "index.md"
         meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
         assert meta["status"] == "published"
-
-    def test_writes_published_at_timestamp(self, ink_dir: Path, sample_ready_article_dir: Path):
-        skill = PublishSkill(ink_dir)
-        skill.execute("2025/04/01-ready-article", {"channels": ["blog"]})
-
-        index_path = sample_ready_article_dir / "index.md"
-        meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
         assert "published_at" in meta
         assert meta["published_at"] is not None
 
@@ -334,7 +336,16 @@ class TestPublishSkillSuccess:
         assert result.success is True
         index_path = sample_ready_article_dir / "index.md"
         meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
-        assert meta["status"] == "ready"
+        assert meta["status"] == "drafted"
+
+    def test_publish_push_sets_published(self, ink_dir: Path, sample_ready_article_dir: Path):
+        skill = PublishSkill(ink_dir)
+        result = skill.execute("2025/04/01-ready-article", {"channels": ["blog"], "push": True})
+
+        assert result.success is True
+        index_path = sample_ready_article_dir / "index.md"
+        meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
+        assert meta["status"] == "published"
 
 
 class TestPublishSkillAllFail:
@@ -408,3 +419,21 @@ class TestPublishSkillNoTarget:
         result = skill.execute(None, {"channels": ["blog"]})
         assert result.success is False
         assert "No target" in result.message
+
+
+class TestSyndicateSkill:
+    def test_syndicate_promotes_drafted_to_published(self, ink_dir: Path):
+        article_path = _make_article(ink_dir, "2025/07/01-drafted", status="drafted")
+        result = SyndicateSkill(ink_dir).execute("2025/07/01-drafted", {})
+
+        assert result.success is True
+        meta, _ = parse_frontmatter((article_path / "index.md").read_text(encoding="utf-8"))
+        assert meta["status"] == "published"
+        assert meta["published_at"]
+
+    def test_syndicate_rejects_ready(self, ink_dir: Path):
+        _make_article(ink_dir, "2025/07/02-ready", status="ready")
+        result = SyndicateSkill(ink_dir).execute("2025/07/02-ready", {})
+
+        assert result.success is False
+        assert result.data["current_status"] == "ready"

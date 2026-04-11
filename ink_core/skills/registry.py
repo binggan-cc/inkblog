@@ -24,6 +24,7 @@ class FileDefinedSkill(Skill):
     def __init__(self, definition: SkillDefinition, workspace_root: Path | None = None) -> None:
         self._definition = definition
         self._workspace_root = workspace_root or Path.cwd()
+        self.source = "custom"
 
     @property
     def name(self) -> str:
@@ -169,12 +170,13 @@ class SkillRegistry:
             A new ``SkillRegistry`` with publish, analyze, and search registered.
         """
         # Import here to avoid circular imports at module level
-        from ink_core.skills.publish import PublishSkill
+        from ink_core.skills.publish import PublishSkill, SyndicateSkill
         from ink_core.skills.analyze import AnalyzeSkill
         from ink_core.skills.search import SearchSkill
 
         registry = cls(workspace_root)
         registry.register(PublishSkill(workspace_root))
+        registry.register(SyndicateSkill(workspace_root))
         registry.register(AnalyzeSkill(workspace_root))
         registry.register(SearchSkill(workspace_root))
         return registry

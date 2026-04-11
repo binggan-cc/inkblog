@@ -1,6 +1,6 @@
 # Ink Blog Core
 
-> v0.4.0
+> v0.4.1
 
 [中文](#中文) | [English](#english)
 
@@ -204,7 +204,9 @@ ink search "关键词" --fulltext        # 启用全文搜索（L2）
 ```bash
 ink publish 2025/03/20-my-post --channels blog
 ink publish 2025/03/20-my-post --channels blog,newsletter,mastodon
+ink publish 2025/03/20-my-post --channels blog --push
 ink publish --all --channels blog
+ink syndicate 2025/03/20-my-post
 ```
 
 **支持的渠道（Phase 1 均为本地文件输出）：**
@@ -216,12 +218,10 @@ ink publish --all --channels blog
 | `mastodon` | `.ink/publish-output/mastodon/` | 纯文本，≤500 字符 |
 
 发布成功后：
-- `index.md` 中 `status` 更新为 `published`
-- 写入 `published_at` 时间戳
-- 更新 `_index/timeline.json`
-- 在 `.ink/publish-history/` 下记录发布历史
-
-当仅发布到 `mastodon` 时，当前版本会保存本地草稿并记录发布历史，但不会将文章状态推进到 `published`。
+- `ink publish` 生成本地发布产物并将 `status` 更新为 `drafted`
+- `ink syndicate` 将 `drafted` 文章推进为 `published`，并写入 `published_at`
+- `ink publish --push` 一步将 `ready` 文章推进为 `published`
+- 每次发布尝试都会在 `.ink/publish-history/` 下记录历史
 
 ---
 
@@ -231,6 +231,7 @@ ink publish --all --channels blog
 
 ```bash
 ink build
+ink build --include-drafted
 ink build --all
 ```
 
@@ -239,11 +240,25 @@ ink build --all
 - `_site/YYYY/MM/DD-slug/index.html` — 每篇文章页面
 - `_site/feed.xml` — RSS/Atom 订阅源（最近 20 篇已发布文章）
 
+默认只构建 `published` 文章；`--include-drafted` 用于本地预览 drafted 文章。
+
+---
+
+##### `ink doctor`
+
+工作区维护命令。
+
+```bash
+ink doctor --migrate-status
+```
+
+`--migrate-status` 会将没有 `published_at` 的旧 `published` 文章迁移为 `drafted`，带有 `published_at` 的文章保持 `published`。
+
 ---
 
 ##### `ink skills list`
 
-列出所有已注册的 Skills（内置 + 自定义）。
+列出所有已注册的 Skills（内置 + 自定义），并标注来源。
 
 ```bash
 ink skills list
@@ -553,6 +568,7 @@ pytest tests/ -v
 
 | 版本 | 日期 | 主题 |
 |------|------|------|
+| v0.4.1 | 2026-04-11 | 发布状态机扩展：drafted/syndicate/publish --push/build --include-drafted、CLI 标注 |
 | v0.4.0 | 2026-04-11 | 工程硬化：中文 slug、Markdown/XSS 安全、模板 autoescape、严格 SkillExecutor、发布状态修复 |
 | v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |
 | v0.2.0 | 2026-04-05 | 静态站生成、分层配置、改进 init |
@@ -734,7 +750,9 @@ Publish articles to specified channels. **Article `status` must be `ready`.**
 ```bash
 ink publish 2025/03/20-my-post --channels blog
 ink publish 2025/03/20-my-post --channels blog,newsletter,mastodon
+ink publish 2025/03/20-my-post --channels blog --push
 ink publish --all --channels blog
+ink syndicate 2025/03/20-my-post
 ```
 
 | Channel | Output Location | Format |
@@ -743,9 +761,11 @@ ink publish --all --channels blog
 | `newsletter` | `.ink/publish-output/newsletter/` | Markdown with summary intro |
 | `mastodon` | `.ink/publish-output/mastodon/` | Plain text, ≤500 chars |
 
-After publishing: status updates to `published`, `published_at` timestamp is written, `_index/timeline.json` is updated, and publish history is recorded.
-
-When publishing only to `mastodon`, this version saves a local draft and records publish history, but does not advance the article status to `published`.
+After publishing:
+- `ink publish` writes local publishing artifacts and updates `status` to `drafted`
+- `ink syndicate` promotes a `drafted` article to `published` and writes `published_at`
+- `ink publish --push` promotes a `ready` article to `published` in one step
+- Each publish attempt is recorded under `.ink/publish-history/`
 
 ---
 
@@ -755,6 +775,7 @@ Generate a static HTML site to `_site/`.
 
 ```bash
 ink build          # Published articles only (default)
+ink build --include-drafted  # Include drafted articles for local preview
 ink build --all    # All articles
 ```
 
@@ -763,11 +784,25 @@ ink build --all    # All articles
 - `_site/YYYY/MM/DD-slug/index.html` — Article pages
 - `_site/feed.xml` — RSS/Atom feed (latest 20 published articles)
 
+By default only `published` articles are built. Use `--include-drafted` for local drafted previews.
+
+---
+
+##### `ink doctor`
+
+Workspace maintenance.
+
+```bash
+ink doctor --migrate-status
+```
+
+`--migrate-status` migrates legacy `published` articles without `published_at` to `drafted`; articles with `published_at` remain `published`.
+
 ---
 
 ##### `ink skills list`
 
-List all registered skills (built-in + custom).
+List all registered skills (built-in + custom), including source labels.
 
 ```bash
 ink skills list
@@ -1073,6 +1108,7 @@ pytest tests/ -v
 
 | Version | Date | Summary |
 |---------|------|---------|
+| v0.4.1 | 2026-04-11 | Publish state machine: drafted/syndicate/publish --push/build --include-drafted, CLI labels |
 | v0.4.0 | 2026-04-11 | Engineering hardening: Chinese slugs, Markdown/XSS safety, template autoescape, strict SkillExecutor, publish status fix |
 | v0.3.0 | 2026-04-11 | Agent mode (log/recall/serve/skill-*), property tests, docs consolidation |
 | v0.2.0 | 2026-04-05 | Static site generation, layered config, improved init |

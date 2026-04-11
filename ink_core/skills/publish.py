@@ -284,30 +284,25 @@ class PublishSkill(Skill):
         draft_saved = [r for r in records if r.status == "draft_saved"]
         any_success = len(successful) > 0
 
-        if any_success:
-            # Update index.md: status=published + published_at timestamp
-            published_at = _now_iso()
-            meta["status"] = ArticleStatus.PUBLISHED.value
-            meta["published_at"] = published_at
-            new_index_content = dump_frontmatter(meta, body)
-            index_path.write_text(new_index_content, encoding="utf-8")
-            changed_files.append(index_path)
+        should_advance_to_drafted = (any_success or draft_saved) and not params.get("push")
+        should_advance_to_published = any_success and bool(params.get("push"))
 
-            # Refresh article.l2 so update_layers uses the new content
-            article.l2 = new_index_content
-
-            # Regenerate .abstract and .overview
-            layer_files = self._article_manager.update_layers(article)
-            changed_files.extend(layer_files)
-
-            # Re-read the article to get updated l1 for timeline
-            updated_result = self._article_manager.read_by_id(target)
-            updated_article = updated_result.article
-
-            # Update timeline index
-            self._index_manager.update_timeline(updated_article)
-            timeline_path = self._workspace_root / "_index" / "timeline.json"
-            changed_files.append(timeline_path)
+        if should_advance_to_drafted or should_advance_to_published:
+            next_status = (
+                ArticleStatus.PUBLISHED
+                if should_advance_to_published
+                else ArticleStatus.DRAFTED
+            )
+            changed_files.extend(
+                self._set_article_status(
+                    target=target,
+                    article=article,
+                    meta=meta,
+                    body=body,
+                    index_path=index_path,
+                    status=next_status,
+                )
+            )
 
         # --- Always record publish history ---
         history_path = self._history_manager.record(
@@ -326,12 +321,18 @@ class PublishSkill(Skill):
 
         if any_success:
             success_channels = [r.channel for r in successful]
+            status_label = (
+                ArticleStatus.PUBLISHED.value
+                if params.get("push")
+                else ArticleStatus.DRAFTED.value
+            )
             return SkillResult(
                 success=True,
-                message=f"Published '{target}' to: {success_channels}",
+                message=f"Published '{target}' to: {success_channels}; status={status_label}",
                 data={
                     "canonical_id": target,
                     "channels": channel_summaries,
+                    "status": status_label,
                     "published_at": meta.get("published_at"),
                 },
                 changed_files=changed_files,
@@ -340,10 +341,11 @@ class PublishSkill(Skill):
             draft_channels = [r.channel for r in draft_saved]
             return SkillResult(
                 success=True,
-                message=f"Saved draft for '{target}' to: {draft_channels}",
+                message=f"Saved draft for '{target}' to: {draft_channels}; status={ArticleStatus.DRAFTED.value}",
                 data={
                     "canonical_id": target,
                     "channels": channel_summaries,
+                    "status": ArticleStatus.DRAFTED.value,
                 },
                 changed_files=changed_files,
             )
@@ -399,10 +401,127 @@ class PublishSkill(Skill):
             if result.changed_files:
                 all_changed.extend(result.changed_files)
 
-        msg = f"Batch publish: {len(published)} published, {len(failed)} failed."
+        msg = f"Batch publish: {len(published)} processed, {len(failed)} failed."
         return SkillResult(
             success=len(published) > 0,
             message=msg,
-            data={"published": published, "failed": failed},
+            data={"processed": published, "failed": failed},
             changed_files=all_changed,
+        )
+
+    def _set_article_status(
+        self,
+        *,
+        target: str,
+        article: Article,
+        meta: dict,
+        body: str,
+        index_path: Path,
+        status: ArticleStatus,
+    ) -> list[Path]:
+        changed_files: list[Path] = []
+        meta["status"] = status.value
+        if status == ArticleStatus.PUBLISHED:
+            meta["published_at"] = _now_iso()
+        new_index_content = dump_frontmatter(meta, body)
+        index_path.write_text(new_index_content, encoding="utf-8")
+        changed_files.append(index_path)
+
+        article.l2 = new_index_content
+        changed_files.extend(self._article_manager.update_layers(article))
+
+        updated_result = self._article_manager.read_by_id(target)
+        self._index_manager.update_timeline(updated_result.article)
+        timeline_path = self._workspace_root / "_index" / "timeline.json"
+        changed_files.append(timeline_path)
+        return changed_files
+
+
+class SyndicateSkill(Skill):
+    """Promote a drafted article to published."""
+
+    def __init__(self, workspace_root: Path) -> None:
+        self._workspace_root = workspace_root
+        self._article_manager = ArticleManager(workspace_root)
+        self._index_manager = IndexManager(workspace_root)
+        self._history_manager = PublishHistoryManager(workspace_root)
+
+    @property
+    def name(self) -> str:
+        return "syndicate"
+
+    @property
+    def version(self) -> str:
+        return "1.0"
+
+    @property
+    def context_requirement(self) -> str:
+        return "L2"
+
+    @property
+    def description(self) -> str:
+        return "Promote a drafted article to published."
+
+    def execute(self, target: str | None, params: dict) -> SkillResult:
+        if not target:
+            return SkillResult(success=False, message="No target article specified.")
+
+        try:
+            read_result = self._article_manager.read_by_id(target)
+        except Exception as exc:
+            return SkillResult(success=False, message=str(exc))
+
+        article = read_result.article
+        index_path = article.path / "index.md"
+        raw_index = index_path.read_text(encoding="utf-8")
+        meta, body = parse_frontmatter(raw_index)
+        current_status = str(meta.get("status", ArticleStatus.DRAFT.value))
+
+        if not ArticleStatus.is_syndicatable(current_status):
+            return SkillResult(
+                success=False,
+                message=(
+                    f"Article status is '{current_status}', not '{ArticleStatus.DRAFTED.value}'. "
+                    f"Run `ink publish` before syndicating."
+                ),
+                data={
+                    "current_status": current_status,
+                    "valid_transitions": ArticleStatus.valid_transitions().get(current_status, []),
+                },
+            )
+
+        published_at = _now_iso()
+        meta["status"] = ArticleStatus.PUBLISHED.value
+        meta["published_at"] = published_at
+        new_index_content = dump_frontmatter(meta, body)
+        index_path.write_text(new_index_content, encoding="utf-8")
+        changed_files = [index_path]
+
+        article.l2 = new_index_content
+        changed_files.extend(self._article_manager.update_layers(article))
+        updated = self._article_manager.read_by_id(target).article
+        self._index_manager.update_timeline(updated)
+        timeline_path = self._workspace_root / "_index" / "timeline.json"
+        changed_files.append(timeline_path)
+
+        attempted_at = _now_iso()
+        history_path = self._history_manager.record(
+            session_id=params.get("session_id", attempted_at),
+            canonical_id=target,
+            attempted_at=attempted_at,
+            records=[
+                ChannelPublishRecord(
+                    channel="syndicate",
+                    status="success",
+                    attempted_at=attempted_at,
+                    published_at=published_at,
+                )
+            ],
+        )
+        changed_files.append(history_path)
+        return SkillResult(
+            success=True,
+            message=f"Syndicated '{target}'; status={ArticleStatus.PUBLISHED.value}",
+            data={"canonical_id": target, "status": ArticleStatus.PUBLISHED.value},
+            changed_files=changed_files,
         )

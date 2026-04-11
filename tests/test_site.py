@@ -70,6 +70,19 @@ def _create_draft_article(manager: ArticleManager, index_mgr: IndexManager,
     return result.article
 
 
+def _create_drafted_article(manager: ArticleManager, index_mgr: IndexManager,
+                             title: str, date: str):
+    article = manager.create(title, date=date)
+    index_path = article.path / "index.md"
+    content = index_path.read_text(encoding="utf-8").replace("status: draft", "status: drafted")
+    index_path.write_text(content, encoding="utf-8")
+    article.l2 = content
+    manager.update_layers(article)
+    result = manager.read(article.path)
+    index_mgr.update_timeline(result.article)
+    return result.article
+
+
 def _make_builder(workspace: Path) -> SiteBuilder:
     config = InkConfig()
     return SiteBuilder(
@@ -114,6 +127,17 @@ class TestBuildCommandRegistration:
 
         # --all should produce more pages (draft article included)
         assert result_all.data["page_count"] >= result_default.data["page_count"]
+
+    def test_build_command_include_drafted_param_passed(self, tmp_path: Path) -> None:
+        ws = _make_workspace(tmp_path)
+        manager = ArticleManager(ws)
+        index_mgr = IndexManager(ws)
+        drafted = _create_drafted_article(manager, index_mgr, "Drafted Article", "2025-12-16")
+
+        cmd = BuildCommand(ws)
+        cmd.run(None, {"include_drafted": True})
+
+        assert (ws / "_site" / drafted.canonical_id / "index.html").exists()
 
     def test_build_command_registered_in_cli(self, tmp_path: Path) -> None:
         """BuildCommand appears in the IntentRouter builtin table."""

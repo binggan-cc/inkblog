@@ -86,7 +86,7 @@ context_requirement: L0
     assert not (tmp_path / "escape.txt").exists()
 
 
-def test_publish_mastodon_draft_saved_does_not_advance_status(tmp_path: Path) -> None:
+def test_publish_mastodon_draft_saved_advances_to_drafted(tmp_path: Path) -> None:
     article = ArticleManager(tmp_path).create("Mastodon Draft", date="2025-04-05")
     index_path = article.path / "index.md"
     index_path.write_text(
@@ -101,6 +101,6 @@ def test_publish_mastodon_draft_saved_does_not_advance_status(tmp_path: Path) ->
 
     meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
     assert result.success
-    assert meta["status"] == "ready"
+    assert meta["status"] == "drafted"
     assert (tmp_path / ".ink" / "publish-history" / "2025" / "04" / "05-mastodon-draft").exists()
-    assert not (tmp_path / "_index" / "timeline.json").exists()
+    assert (tmp_path / "_index" / "timeline.json").exists()

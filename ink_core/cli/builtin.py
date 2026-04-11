@@ -227,14 +227,32 @@ class SkillsListCommand(BuiltinCommand):
         if not skills:
             return SkillResult(success=True, message="No skills registered.", data={"skills": []})
 
-        lines = []
+        built_in_lines = []
+        custom_lines = []
         skill_data = []
         for skill in skills:
             desc = getattr(skill, "description", "")
-            lines.append(f"  {skill.name} (v{skill.version}) — {desc}")
-            skill_data.append({"name": skill.name, "version": skill.version, "description": desc})
+            source = getattr(skill, "source", "built-in")
+            line = f"  {skill.name} (v{skill.version}) [{skill.context_requirement}] — {desc}"
+            if source == "custom":
+                custom_lines.append(line)
+            else:
+                built_in_lines.append(line)
+            skill_data.append({
+                "name": skill.name,
+                "version": skill.version,
+                "description": desc,
+                "source": source,
+            })
 
-        message = "Registered skills:\n" + "\n".join(lines)
+        sections = ["Registered skills:"]
+        if built_in_lines:
+            sections.append("Built-in:")
+            sections.extend(built_in_lines)
+        if custom_lines:
+            sections.append("Custom:")
+            sections.extend(custom_lines)
+        message = "\n".join(sections)
         return SkillResult(success=True, message=message, data={"skills": skill_data})
 
 
@@ -313,6 +331,7 @@ class BuildCommand(BuiltinCommand):
         from ink_core.site.builder import SiteBuilder
 
         include_all = bool(params.get("all", False))
+        include_drafted = bool(params.get("include_drafted", False))
 
         config = InkConfig(workspace_root=self._workspace_root)
         article_manager = ArticleManager(self._workspace_root)
@@ -326,7 +345,7 @@ class BuildCommand(BuiltinCommand):
         )
 
         try:
-            result = builder.build(include_all=include_all)
+            result = builder.build(include_all=include_all, include_drafted=include_drafted)
         except Exception as exc:
             return SkillResult(
                 success=False,
@@ -349,5 +368,67 @@ class BuildCommand(BuiltinCommand):
                 "duration_ms": result.duration_ms,
                 "output_dir": str(result.output_dir),
             },
+            changed_files=changed_files,
+        )
+
+
+# ---------------------------------------------------------------------------
+# DoctorCommand
+# ---------------------------------------------------------------------------
+
+class DoctorCommand(BuiltinCommand):
+    """Workspace maintenance helpers."""
+
+    def __init__(self, workspace_root: Path) -> None:
+        self._workspace_root = workspace_root
+
+    @property
+    def name(self) -> str:
+        return "doctor"
+
+    def run(self, target: str | None, params: dict) -> SkillResult:
+        if not params.get("migrate_status"):
+            return SkillResult(
+                success=False,
+                message="No doctor action specified. Supported: --migrate-status",
+            )
+        return self._migrate_status()
+
+    def _migrate_status(self) -> SkillResult:
+        from ink_core.core.status import ArticleStatus
+        from ink_core.fs.article import ArticleManager
+        from ink_core.fs.index_manager import IndexManager
+        from ink_core.fs.markdown import dump_frontmatter, parse_frontmatter
+
+        manager = ArticleManager(self._workspace_root)
+        index_mgr = IndexManager(self._workspace_root)
+        changed_files: list[Path] = []
+        migrated: list[str] = []
+
+        for article in manager.list_all():
+            index_path = article.path / "index.md"
+            meta, body = parse_frontmatter(index_path.read_text(encoding="utf-8"))
+            if (
+                meta.get("status") == ArticleStatus.PUBLISHED.value
+                and not meta.get("published_at")
+            ):
+                meta["status"] = ArticleStatus.DRAFTED.value
+                new_content = dump_frontmatter(meta, body)
+                index_path.write_text(new_content, encoding="utf-8")
+                changed_files.append(index_path)
+                article.l2 = new_content
+                changed_files.extend(manager.update_layers(article))
+                updated = manager.read_by_id(article.canonical_id).article
+                index_mgr.update_timeline(updated)
+                migrated.append(article.canonical_id)
+
+        timeline_path = self._workspace_root / "_index" / "timeline.json"
+        if migrated and timeline_path.exists():
+            changed_files.append(timeline_path)
+
+        return SkillResult(
+            success=True,
+            message=f"Migrated {len(migrated)} article(s) from published to drafted.",
+            data={"migrated": migrated},
             changed_files=changed_files,
         )

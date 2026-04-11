@@ -93,7 +93,7 @@ def test_property_7_draft_saved_does_not_publish(tmp_path: Path) -> None:
 
     result = PublishSkill(tmp_path).execute(article.canonical_id, {"channels": ["mastodon"]})
     assert result.success
-    assert "status: ready" in index_path.read_text(encoding="utf-8")
+    assert "status: drafted" in index_path.read_text(encoding="utf-8")
 
 
 @given(payload=st.text(min_size=0, max_size=80))

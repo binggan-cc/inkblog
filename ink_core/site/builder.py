@@ -47,11 +47,12 @@ class SiteBuilder:
     # Public API
     # ------------------------------------------------------------------
 
-    def build(self, *, include_all: bool = False) -> BuildResult:
+    def build(self, *, include_all: bool = False, include_drafted: bool = False) -> BuildResult:
         """Build the static site.
 
         Args:
             include_all: If True, include articles of all statuses.
+            include_drafted: If True, include drafted articles for preview.
                          If False (default), only include status=published.
 
         Returns:
@@ -81,7 +82,8 @@ class SiteBuilder:
                 continue
             status = str(entry.get("status", ArticleStatus.DRAFT.value))
             if not include_all and status != ArticleStatus.PUBLISHED.value:
-                continue
+                if not (include_drafted and status == ArticleStatus.DRAFTED.value):
+                    continue
             try:
                 result = self._article_manager.read_by_id(canonical_id)
                 articles.append(result.article)
@@ -110,7 +112,7 @@ class SiteBuilder:
         published_articles = [
             a for a in articles
             if _get_status(a) == ArticleStatus.PUBLISHED.value
-        ] if include_all else articles
+        ] if (include_all or include_drafted) else articles
 
         feed_path = output_dir / "feed.xml"
         site_config = {
