@@ -13,7 +13,7 @@
 
 ### v0.4.0 — 底层硬伤修复
 
-- [-] 1. 新增依赖与基础设施准备
+- [x] 1. 新增依赖与基础设施准备
   - [x] 1.1 更新 `pyproject.toml` 添加可选依赖
     - 在 `[project.optional-dependencies]` 中添加 `pinyin = ["pypinyin>=0.50"]`、`markdown = ["mistune>=3.0"]`
     - 添加 `all = ["pypinyin>=0.50", "mistune>=3.0"]`
