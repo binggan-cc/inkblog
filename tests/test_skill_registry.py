@@ -210,14 +210,14 @@ class TestFileDefinedSkill:
         assert skill.context_requirement == "L2"
         assert skill.description == "desc"
 
-    def test_execute_returns_failure(self):
+    def test_execute_runs_file_defined_skill(self, tmp_path):
         defn = SkillDefinition(
             skill="stub", version="1.0", context_requirement="L0",
             description="", inputs={}, steps=[],
         )
-        skill = FileDefinedSkill(defn)
+        skill = FileDefinedSkill(defn, tmp_path)
         result = skill.execute(None, {})
-        assert result.success is False
+        assert result.success is True
 
 
 # ---------------------------------------------------------------------------

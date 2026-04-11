@@ -18,13 +18,12 @@ logger = logging.getLogger(__name__)
 class FileDefinedSkill(Skill):
     """A lightweight Skill wrapper around a SkillDefinition loaded from a .md file.
 
-    Phase 1: execute() is a no-op stub; the definition data is available for
-    listing and routing purposes.  A real execution engine can be plugged in
-    later by subclassing or replacing this wrapper.
+    File-defined skills execute through the strict DSL SkillExecutor.
     """
 
-    def __init__(self, definition: SkillDefinition) -> None:
+    def __init__(self, definition: SkillDefinition, workspace_root: Path | None = None) -> None:
         self._definition = definition
+        self._workspace_root = workspace_root or Path.cwd()
 
     @property
     def name(self) -> str:
@@ -43,13 +42,9 @@ class FileDefinedSkill(Skill):
         return self._definition.description
 
     def execute(self, target: str | None, params: dict) -> SkillResult:
-        return SkillResult(
-            success=False,
-            message=(
-                f"Skill '{self.name}' is defined via a .md file and has no "
-                "executable implementation in Phase 1."
-            ),
-        )
+        from ink_core.skills.executor import SkillExecutor
+
+        return SkillExecutor(self._workspace_root).execute(self._definition, target, params)
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +63,8 @@ class SkillRegistry:
     are wrapped as ``FileDefinedSkill`` instances and registered automatically.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, workspace_root: Path | None = None) -> None:
+        self._workspace_root = workspace_root or Path.cwd()
         self._skills: dict[str, Skill] = {}
         self._loader = SkillFileLoader()
 
@@ -156,7 +152,7 @@ class SkillRegistry:
                 )
                 continue
 
-            self.register(FileDefinedSkill(definition))
+            self.register(FileDefinedSkill(definition, self._workspace_root))
 
     # ------------------------------------------------------------------
     # Factory helper
@@ -177,7 +173,7 @@ class SkillRegistry:
         from ink_core.skills.analyze import AnalyzeSkill
         from ink_core.skills.search import SearchSkill
 
-        registry = cls()
+        registry = cls(workspace_root)
         registry.register(PublishSkill(workspace_root))
         registry.register(AnalyzeSkill(workspace_root))
         registry.register(SearchSkill(workspace_root))
