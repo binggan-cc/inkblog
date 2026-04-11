@@ -1,8 +1,9 @@
-# Ink Blog Core — 内核架构与可扩展方向
+# Ink Blog Core — 内核架构、改进路线与可扩展方向
 
 > 版本：v0.3.0-draft
 > 日期：2026-04-11
 > 状态：设计讨论稿
+> 合并自：improvements.md (2026-04-10) + design.md (2026-04-11)
 
 ---
 
@@ -147,6 +148,7 @@ JournalManager → YYYY/MM/DD-journal/index.md
 - 日记复用 ArticleManager 的目录结构和三层上下文
 - 技能管理：`SkillIndexManager` 管理 `_index/skills.json`
 
+
 ---
 
 ## 四、扩展点分析
@@ -258,15 +260,55 @@ class SkillExecutor:
 
 ---
 
-## 六、可扩展方向
+## 六、测试覆盖（最高优先级）
 
-以下方向按 "内核增强 → 用户价值 → 生态扩展" 的顺序排列。
+`hypothesis` 已在 `pyproject.toml` 的 `dev` 依赖中，实现成本低，收益高。以下 13 个属性测试尚未实现：
 
-### 第一圈：内核增强（v0.3.x）
+| 文件 | 覆盖的 Property |
+|------|----------------|
+| `tests/agent/test_config_agent.py` | P11 无效 mode 被拒绝、P12 agent init 配置写入与保留 |
+| `tests/agent/test_journal_manager.py` | P2 LogEntry 格式正确性、P3 Daily Journal 创建完整性 |
+| `tests/agent/test_recall_engine.py` | P4 Recall schema 合规性、P5 分类过滤、P6 日期过滤、P7 limit 约束、P8 无效 limit 被拒绝 |
+| `tests/agent/test_log_command.py` | P9 分类大小写规范化、P10 无效分类被拒绝 |
+| `tests/agent/test_recall_command.py` | P1 日记写入 round-trip 一致性 |
+| `tests/agent/test_skill_index.py` | P13 技能 upsert 无重复、P14 技能 frontmatter 验证 |
+| `tests/agent/test_human_compat.py` | P15 disable_human_commands 拦截 |
+| `tests/integration/test_http_api.py` | HTTP API 端到端测试（`/log`、`/recall`、`/health`、400 错误） |
+
+---
+
+## 七、版本路线图与功能规划
+
+### 版本总览
+
+| 版本 | 主题 | 关键交付 |
+|------|------|---------|
+| v0.2.1 | 质量加固 | 13 个属性测试 + HTTP API 集成测试 + L0/L1 同步更新修复 |
+| v0.3.0 | 内核增强 | `ink doctor` + `ink stats` + `ink archive` |
+| v0.4.0 | 用户价值 | `ink digest` + `ink promote` + Shell 补全 + `ink export` + 最小 Skill 执行引擎 |
+| v0.5.0 | 生态扩展 | MCP Server 接入 + 可选语义检索 |
+| v0.6.0 | 内核重构 | 统一内容模型（ContentItem）+ 统一检索引擎 |
+| v1.0.0 | 稳定版 | 完整 Skill 执行引擎 + Skill 市场 |
+
+> 注：v0.6.0 的内核重构放在生态扩展之后，是因为当前架构足以支撑 v0.3–v0.5 的功能。
+> 过早重构会增加风险，等积累了更多内容类型的实际需求后再做统一抽象更稳妥。
+> 但建议在 v0.3.0 引入 `ContentItem` 的接口定义（不做完整重构），让新功能面向接口编程。
+
+
+### v0.2.1 — 质量加固
+
+#### L0/L1 同步更新
+
+当前 `ink log` 追加内容后不更新 `.abstract` 和 `.overview`，导致三层上下文不一致。
+
+修复：在 `JournalManager.append_entry()` 末尾调用 `_generate_layers()`。
+同理，任何修改 `index.md` 的操作都应触发 L0/L1 重建。
+
+### v0.3.0 — 内核增强
 
 这些改进直接强化现有能力，不引入新概念。
 
-#### 6.1 `ink doctor` — 工作区健康诊断
+#### `ink doctor` — 工作区健康诊断
 
 ```bash
 ink doctor
@@ -279,10 +321,12 @@ ink doctor
 - 索引一致性（timeline.json 与实际文章目录对比）
 - Skill 文件完整性（`_index/skills.json` 引用的文件是否存在）
 - Journal 连续性（检测日期缺口）
+- HTTP API 端口可用性检测
 
 实现：新增 `DoctorCommand(BuiltinCommand)`，调用各 Manager 的校验方法。
+各项检查均有现成基础设施可复用：`InkConfig.validate_mode()`、`GitManager`、`JournalManager.list_journal_paths()`、`L0Generator` / `L1Generator`。
 
-#### 6.2 `ink stats` — 内容统计
+#### `ink stats` — 内容统计
 
 ```bash
 ink stats                    # 全局统计
@@ -296,16 +340,9 @@ ink stats --type journal     # 仅 journal 统计
 - 按月活跃度 heatmap（ASCII）
 - 连续活跃天数
 
-实现：新增 `StatsCommand(BuiltinCommand)`，遍历 `ContentManager`（或现有 ArticleManager + JournalManager）聚合数据。
+实现：新增 `StatsCommand(BuiltinCommand)`，复用 `JournalManager.list_journal_paths()` + `parse_entries()` 做聚合。
 
-#### 6.3 L0/L1 同步更新
-
-当前 `ink log` 追加内容后不更新 `.abstract` 和 `.overview`，导致三层上下文不一致。
-
-修复：在 `JournalManager.append_entry()` 末尾调用 `_generate_layers()`。
-同理，任何修改 `index.md` 的操作都应触发 L0/L1 重建。
-
-#### 6.4 `ink archive` — 文章归档命令
+#### `ink archive` — 文章归档命令
 
 ```bash
 ink archive YYYY/MM/DD-slug
@@ -314,11 +351,11 @@ ink archive YYYY/MM/DD-slug
 将 `status` 改为 `archived`，更新 L0/L1，从 timeline 中标记。
 填补生命周期中缺失的最后一环。
 
-### 第二圈：用户价值（v0.4.x）
+### v0.4.0 — 用户价值
 
 这些功能面向终端用户（人类或 Agent），提供新的使用场景。
 
-#### 6.5 `ink digest` — 周期摘要生成
+#### `ink digest` — 周期摘要生成
 
 ```bash
 ink digest --week
@@ -331,7 +368,7 @@ ink digest --since 2026-04-01 --until 2026-04-10
 
 实现：复用 `RecallEngine.search()` + 模板格式化。
 
-#### 6.6 `ink promote` — Journal 提升为文章
+#### `ink promote` — Journal 提升为文章
 
 ```bash
 ink promote 2026-04-10 --title "本周学习总结" --tags learning,weekly
@@ -342,17 +379,21 @@ ink promote 2026-04-10 --title "本周学习总结" --tags learning,weekly
 - 转换 frontmatter（移除 `agent` 字段，更新 `tags`/`status`）
 - 保留原 journal 不变，在新文章中添加 `source: YYYY/MM/DD-journal` 引用
 
-#### 6.7 Shell 补全
+> ⚠️ journal 的 frontmatter 结构与正式文章不同，"提升" 需要 frontmatter 转换、slug 重命名、timeline 更新等操作，比表面看起来复杂。建议先明确需求边界再评估。
+
+#### Shell 补全
 
 ```bash
 ink completion zsh >> ~/.zshrc
+ink completion bash >> ~/.bashrc
+ink completion fish > ~/.config/fish/completions/ink.fish
 ```
 
-- 基于 argparse 子命令和 flag 生成补全脚本
+- 基于 argparse 子命令和 flag 生成补全脚本（可用 `argcomplete` 或手写）
 - `--category` 从 `VALID_CATEGORIES` 动态补全
 - canonical ID 从 `_index/timeline.json` 补全
 
-#### 6.8 `ink export` — 数据导出
+#### `ink export` — 数据导出
 
 ```bash
 ink export --format csv --since 2026-01-01 --type journal
@@ -362,11 +403,15 @@ ink export --format json --type article
 - JSON 格式：直接序列化 `ContentItem` 列表
 - CSV 格式：扁平化 frontmatter + 内容摘要
 
-### 第三圈：生态扩展（v0.5.x+）
+#### 最小 Skill 执行引擎
 
-这些方向需要独立的设计文档，这里只描述方向和约束。
+当前 `FileDefinedSkill.execute()` 是空壳，建议在 v0.4.0 实现最小可用版本（支持 `read_content` + `write_file` 两种步骤类型），避免 Skill 系统长期空壳到 v1.0.0。
 
-#### 6.9 MCP Server 接入
+### v0.5.0 — 生态扩展
+
+以下方向需要独立的设计文档，这里只描述方向和约束。
+
+#### MCP Server 接入
 
 将 Ink 暴露为 MCP（Model Context Protocol）Server，使任何支持 MCP 的 AI Agent 都能直接调用 Ink 的能力。
 
@@ -392,7 +437,9 @@ ink export --format json --type article
 
 **约束**：MCP Server 层不含业务逻辑，仅做参数转换，复用现有 Command/Skill。
 
-#### 6.10 语义检索（可选依赖）
+> 注：当前 AI Agent 生态发展很快，MCP 已成为事实标准。实现成本不高（仅参数转换），可考虑提前到 v0.4.x。
+
+#### 语义检索（可选依赖）
 
 ```toml
 [project.optional-dependencies]
@@ -405,7 +452,9 @@ semantic = ["sqlite-vec>=0.1"]
 
 **约束**：核心路径（keyword search）不依赖此模块。`sqlite-vec` 缺失时优雅降级。
 
-#### 6.11 Skill 市场与远程安装
+> 引入任何 embedding 方案都会新增外部依赖，需评估对 "零外部依赖" 哲学的影响。
+
+#### Skill 市场与远程安装
 
 ```bash
 ink skill-install summarize --from https://registry.example.com
@@ -415,19 +464,38 @@ ink skill-install summarize --from https://registry.example.com
 - 下载 → SHA256 校验 → 写入 `.ink/skills/` → 注册到 `_index/skills.json`
 - 全局技能目录：`~/.ink/global-skills/`
 
-**约束**：需要完整的安全模型设计（签名验证、沙箱执行）。
+**约束**：需要完整的安全模型设计（签名验证、沙箱执行）。复杂度高，建议单独编写设计文档。
 
-#### 6.12 多 Workspace 联邦
-
-```bash
-ink recall "关键词" --workspace /other/path
-```
-
-**约束**：需要授权机制（白名单）。当前不建议实施，记录为长期方向。
 
 ---
 
-## 七、接入层演进路线
+## 八、Developer Experience 改进
+
+### Watch Mode
+
+文件变化时自动 rebuild L0/L1。
+
+```bash
+ink serve --watch
+```
+
+实现方式：基于定时 `os.scandir` 轮询，或引入 `watchdog` 做 fsevents/inotify 监听。
+
+> 建议 watch 功能作为独立 flag 而非与 HTTP server 强耦合，
+> 也可考虑作为独立命令 `ink watch`，避免职责混淆。
+
+### RAG 问答（长期调研）
+
+```bash
+ink ask "上周学了什么"   # 调用本地 LLM（如 ollama）做 RAG 问答
+```
+
+这是独立于 recall 升级的功能，涉及 LLM 调用链、prompt 模板、上下文窗口管理等，
+建议作为单独提案设计，不与语义检索混在一起。
+
+---
+
+## 九、接入层演进路线
 
 当前 Ink 有三种接入方式，未来可扩展为五种：
 
@@ -454,23 +522,74 @@ ink recall "关键词" --workspace /other/path
 
 ---
 
-## 八、版本路线图
+## 十、暂不纳入（需进一步论证）
 
-| 版本 | 主题 | 关键交付 |
-|------|------|---------|
-| v0.2.1 | 质量加固 | 13 个属性测试 + HTTP API 集成测试 + L0/L1 同步更新修复 |
-| v0.3.0 | 内核增强 | `ink doctor` + `ink stats` + `ink archive` |
-| v0.4.0 | 用户价值 | `ink digest` + `ink promote` + Shell 补全 + `ink export` |
-| v0.5.0 | 生态扩展 | MCP Server 接入 + 可选语义检索 |
-| v0.6.0 | 内核重构 | 统一内容模型（ContentItem）+ 统一检索引擎 |
-| v1.0.0 | 稳定版 | Skill 执行引擎 + Skill 市场 |
+以下方向在当前阶段不建议实施，记录于此供未来参考。
 
-> 注：v0.6.0 的内核重构放在生态扩展之后，是因为当前架构足以支撑 v0.3–v0.5 的功能。
-> 过早重构会增加风险，等积累了更多内容类型的实际需求后再做统一抽象更稳妥。
+### 跨 Workspace 检索
+
+```bash
+ink recall "关键词" --workspace /other/path
+```
+
+**暂缓原因**：允许一个 agent 读取任意路径的 journal 数据，违反 FS-as-DB 的 workspace 隔离原则。
+如果未来要做，至少需要设计白名单/授权机制。
+
+### 多 Agent 协作与通信
+
+```
+Agent-A (port 4001) → POST /log → Agent-B (port 4002)
+```
+
+**暂缓原因**：范围远超当前项目边界。当前单 agent 的 HTTP API 尚无集成测试，
+不应在此阶段讨论多 agent 协作。建议在单 agent 模式稳定后，作为独立 RFC 提出。
+
+### Config Profile 切换
+
+```bash
+ink --profile work serve
+ink --profile personal log "今天的笔记"
+```
+
+**暂缓原因**：当前 agent 场景下，一个 workspace 对应一个 agent 是最自然的映射。
+多 profile 切换更适合人类用户多身份场景，对 agent 价值有限。
+如有需求，可通过多 workspace 目录实现同等效果。
+
+### Skill 依赖图（`ink skill-graph`）
+
+- `_index/skills.json` 增加 `depends_on` 字段
+- 打印 ASCII 依赖树，检测循环依赖和版本冲突
+
+当前 `SkillRecord` 没有 `depends_on` 字段，需扩展 schema。
+且现有技能数量较少，依赖图的实际价值有待验证。优先级较低。
 
 ---
 
-## 九、设计约束与决策记录
+## 十一、优先级矩阵
+
+| 方向 | 用户价值 | 实现难度 | 建议优先级 |
+|------|---------|---------|-----------|
+| Property Tests（六） | 质量保障 | 低 | ⭐⭐⭐ 立即 |
+| L0/L1 同步更新（七 v0.2.1） | 数据一致性 | 低 | ⭐⭐⭐ 立即 |
+| `ink doctor` 诊断（七 v0.3.0） | 运维友好 | 中 | ⭐⭐⭐ 近期 |
+| `ink stats` 统计（七 v0.3.0） | 高 | 中 | ⭐⭐⭐ 近期 |
+| `ink archive`（七 v0.3.0） | 生命周期完整 | 低 | ⭐⭐⭐ 近期 |
+| `ink digest` 周报（七 v0.4.0） | 中 | 低 | ⭐⭐ 近期 |
+| `ink promote`（七 v0.4.0） | 中 | 中 | ⭐⭐ 中期 |
+| Shell 补全（七 v0.4.0） | DX 提升 | 低 | ⭐⭐ 中期 |
+| 最小 Skill 执行引擎（七 v0.4.0） | 功能完整 | 中 | ⭐⭐ 中期 |
+| `ink export`（七 v0.4.0） | 低 | 低 | ⭐ 中期 |
+| MCP Server（七 v0.5.0） | 生态接入 | 中 | ⭐⭐ 中期（可提前） |
+| Watch Mode（八） | DX 提升 | 中 | ⭐ 中期 |
+| 语义检索 / RAG（七 v0.5.0 / 八） | 差异化 | 高 | ⭐ 长期调研 |
+| Skill 市场（七 v0.5.0） | 生态 | 高 | ⭐ 长期，需独立设计文档 |
+| 统一内容模型（五 / 七 v0.6.0） | 架构优化 | 高 | ⭐ 长期（建议 v0.3.0 先定义接口） |
+| 统一检索引擎（五 / 七 v0.6.0） | 架构优化 | 高 | ⭐ 长期 |
+| 跨 Workspace / 多 Agent / Profile（十） | — | — | 暂不纳入 |
+
+---
+
+## 十二、设计约束与决策记录
 
 | 决策 | 理由 |
 |------|------|
@@ -481,3 +600,4 @@ ink recall "关键词" --workspace /other/path
 | 索引文件放 `_index/` 且 gitignore | 索引是派生数据，可随时 `rebuild` 重建 |
 | Agent 命令复用 BuiltinCommand 接口 | 统一 SkillResult 返回类型，编排层无需区分 |
 | HTTP API 用标准库实现 | 避免引入 flask/fastapi 依赖，serve 是可选功能 |
+| MCP 接入时的依赖策略 | 待定：MCP SDK 可能引入新依赖，需评估是否作为 optional extras |
