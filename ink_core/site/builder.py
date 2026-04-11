@@ -58,6 +58,7 @@ class SiteBuilder:
             BuildResult with page_count, duration_ms, output_dir.
         """
         from ink_core.fs.markdown import parse_frontmatter
+        from ink_core.core.status import ArticleStatus
         from ink_core.site.renderer import TemplateRenderer
         from ink_core.site.rss import RSSGenerator
 
@@ -78,8 +79,8 @@ class SiteBuilder:
             canonical_id = entry.get("path", "")
             if not canonical_id:
                 continue
-            status = entry.get("status", "draft")
-            if not include_all and status != "published":
+            status = str(entry.get("status", ArticleStatus.DRAFT.value))
+            if not include_all and status != ArticleStatus.PUBLISHED.value:
                 continue
             try:
                 result = self._article_manager.read_by_id(canonical_id)
@@ -108,7 +109,7 @@ class SiteBuilder:
         # Generate RSS feed (published articles only, max 20)
         published_articles = [
             a for a in articles
-            if _get_status(a) == "published"
+            if _get_status(a) == ArticleStatus.PUBLISHED.value
         ] if include_all else articles
 
         feed_path = output_dir / "feed.xml"
@@ -142,6 +143,7 @@ class SiteBuilder:
 
 
 def _get_status(article: "Article") -> str:
+    from ink_core.core.status import ArticleStatus
     from ink_core.fs.markdown import parse_frontmatter
     if isinstance(article.l1, dict):
         meta = article.l1.get("meta", {})
@@ -150,4 +152,4 @@ def _get_status(article: "Article") -> str:
             if s:
                 return str(s)
     meta, _ = parse_frontmatter(article.l2)
-    return str(meta.get("status", "draft"))
+    return str(meta.get("status", ArticleStatus.DRAFT.value))

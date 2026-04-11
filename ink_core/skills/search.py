@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from ink_core.core.status import ArticleStatus
 from ink_core.fs.article import Article, ArticleManager
 from ink_core.fs.markdown import parse_frontmatter, parse_overview
 from ink_core.skills.base import Skill, SkillResult
@@ -117,7 +118,10 @@ class SearchSkill(Skill):
 
         # Filter archived unless explicitly included
         if not include_archived:
-            all_articles = [a for a in all_articles if _get_status(a) != "archived"]
+            all_articles = [
+                a for a in all_articles
+                if ArticleStatus.is_visible_in_search(_get_status(a))
+            ]
 
         # Apply tag filter
         if tag_filter:
@@ -355,7 +359,7 @@ def _get_status(article: Article) -> str:
             if status is not None:
                 return str(status)
     meta, _ = parse_frontmatter(article.l2)
-    return str(meta.get("status", "draft"))
+    return str(meta.get("status", ArticleStatus.DRAFT.value))
 
 
 def _generate_suggestions(query: str, keywords: list[str]) -> list[str]:

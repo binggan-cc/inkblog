@@ -57,7 +57,7 @@ _tag = st.text(
 
 _tags_list = st.lists(_tag, min_size=0, max_size=5)
 
-_status = st.sampled_from(["draft", "review", "ready", "published", "archived"])
+_status = st.sampled_from(["draft", "review", "ready", "drafted", "published", "archived"])
 
 _date = st.dates(
     min_value=__import__("datetime").date(2020, 1, 1),
@@ -232,7 +232,7 @@ def _make_workspace(base: Path, name: str = "ws") -> Path:
 class TestP13PublishStatusGate:
     """For any Article with status != 'ready', PublishSkill must reject publish."""
 
-    @given(status=st.sampled_from(["draft", "review", "published", "archived"]))
+    @given(status=st.sampled_from(["draft", "review", "drafted", "published", "archived"]))
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture])
     def test_non_ready_status_rejected(self, tmp_path: Path, status: str) -> None:
         """Any status other than 'ready' must be rejected by PublishSkill."""
@@ -256,7 +256,7 @@ class TestP13PublishStatusGate:
             assert not result.success
             assert status in result.message or "ready" in result.message.lower()
 
-    @given(status=st.sampled_from(["draft", "review", "published", "archived"]))
+    @given(status=st.sampled_from(["draft", "review", "drafted", "published", "archived"]))
     @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture])
     def test_non_ready_does_not_modify_index_md(self, tmp_path: Path, status: str) -> None:
         """Rejected publish must not modify index.md."""

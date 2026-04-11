@@ -8,6 +8,7 @@ from pathlib import Path
 
 from ink_core.core.errors import InvalidStatusError, UnsupportedChannelError
 from ink_core.core.publish_history import ChannelPublishRecord, PublishHistoryManager
+from ink_core.core.status import ArticleStatus
 from ink_core.fs.article import Article, ArticleManager
 from ink_core.fs.index_manager import IndexManager
 from ink_core.fs.markdown import dump_frontmatter, parse_frontmatter
@@ -253,14 +254,14 @@ class PublishSkill(Skill):
         index_path = article.path / "index.md"
         raw_index = index_path.read_text(encoding="utf-8")
         meta, body = parse_frontmatter(raw_index)
-        current_status = meta.get("status", "draft")
+        current_status = str(meta.get("status", ArticleStatus.DRAFT.value))
 
-        if current_status != "ready":
+        if not ArticleStatus.is_publishable(current_status):
             return SkillResult(
                 success=False,
                 message=(
-                    f"Article status is '{current_status}', not 'ready'. "
-                    f"Update status to 'ready' before publishing."
+                    f"Article status is '{current_status}', not '{ArticleStatus.READY.value}'. "
+                    f"Update status to '{ArticleStatus.READY.value}' before publishing."
                 ),
                 data={"current_status": current_status},
             )
@@ -276,13 +277,14 @@ class PublishSkill(Skill):
             records.append(record)
 
         # --- Determine overall success ---
-        successful = [r for r in records if r.status in ("success", "draft_saved")]
+        successful = [r for r in records if r.status == "success"]
+        draft_saved = [r for r in records if r.status == "draft_saved"]
         any_success = len(successful) > 0
 
         if any_success:
             # Update index.md: status=published + published_at timestamp
             published_at = _now_iso()
-            meta["status"] = "published"
+            meta["status"] = ArticleStatus.PUBLISHED.value
             meta["published_at"] = published_at
             new_index_content = dump_frontmatter(meta, body)
             index_path.write_text(new_index_content, encoding="utf-8")
@@ -331,6 +333,18 @@ class PublishSkill(Skill):
                 },
                 changed_files=changed_files,
             )
+        if draft_saved:
+            draft_channels = [r.channel for r in draft_saved]
+            return SkillResult(
+                success=True,
+                message=f"Saved draft for '{target}' to: {draft_channels}",
+                data={
+                    "canonical_id": target,
+                    "channels": channel_summaries,
+                },
+                changed_files=changed_files,
+            )
+
         else:
             failed_details = [
                 f"{r.channel}: {r.error}" for r in records if r.error
@@ -358,7 +372,7 @@ class PublishSkill(Skill):
             try:
                 raw = index_path.read_text(encoding="utf-8")
                 meta, _ = parse_frontmatter(raw)
-                if meta.get("status") == "ready":
+                if ArticleStatus.is_publishable(str(meta.get("status", ArticleStatus.DRAFT.value))):
                     ready.append(a.canonical_id)
             except Exception:
                 continue
@@ -366,7 +380,7 @@ class PublishSkill(Skill):
         if not ready:
             return SkillResult(
                 success=True,
-                message="No articles with status=ready found.",
+                message=f"No articles with status={ArticleStatus.READY.value} found.",
                 data={"published": [], "failed": []},
             )
 

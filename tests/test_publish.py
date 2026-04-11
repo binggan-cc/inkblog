@@ -325,15 +325,15 @@ class TestPublishSkillSuccess:
         assert result.success is True
         assert len(result.data["channels"]) == 3
 
-    def test_mastodon_draft_saved_counts_as_success(self, ink_dir: Path, sample_ready_article_dir: Path):
-        """draft_saved status should count as success for status update."""
+    def test_mastodon_draft_saved_counts_as_success_without_status_update(self, ink_dir: Path, sample_ready_article_dir: Path):
+        """draft_saved is a successful operation but does not publish the article."""
         skill = PublishSkill(ink_dir)
         result = skill.execute("2025/04/01-ready-article", {"channels": ["mastodon"]})
 
         assert result.success is True
         index_path = sample_ready_article_dir / "index.md"
         meta, _ = parse_frontmatter(index_path.read_text(encoding="utf-8"))
-        assert meta["status"] == "published"
+        assert meta["status"] == "ready"
 
 
 class TestPublishSkillAllFail:
