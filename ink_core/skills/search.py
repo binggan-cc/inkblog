@@ -93,16 +93,6 @@ class SearchSkill(Skill):
             "suggestions" when no results are found.
         """
         query: str = params.get("query") or target or ""
-        tag_filter: str | None = params.get("tag")
-        fulltext: bool = bool(params.get("fulltext", False))
-        include_archived: bool = bool(params.get("include_archived", False))
-
-        # Check config for fulltext engine
-        if not fulltext and self._config is not None:
-            engine = self._config.get("search.engine", "keyword")
-            if engine == "fulltext":
-                fulltext = True
-
         query = query.strip()
         if not query:
             return SkillResult(
@@ -112,6 +102,26 @@ class SearchSkill(Skill):
                     "Provide a non-empty search query.",
                 ]},
             )
+
+        content_type = params.get("type")
+        if content_type == "conversation":
+            return self._search_conversations(query, params)
+        if content_type == "all":
+            article_result = self._search_articles(query, params)
+            conversation_result = self._search_conversations(query, params)
+            return self._merge_results(query, article_result, conversation_result)
+        return self._search_articles(query, params)
+
+    def _search_articles(self, query: str, params: dict) -> SkillResult:
+        """Search article content using the existing layered algorithm."""
+        tag_filter: str | None = params.get("tag")
+        fulltext: bool = bool(params.get("fulltext", False))
+        include_archived: bool = bool(params.get("include_archived", False))
+
+        if not fulltext and self._config is not None:
+            engine = self._config.get("search.engine", "keyword")
+            if engine == "fulltext":
+                fulltext = True
 
         # Load all articles
         all_articles = self._article_manager.list_all()
@@ -174,6 +184,84 @@ class SearchSkill(Skill):
                 "query": query,
                 "results": [_hit_to_dict(h) for h in results],
             },
+        )
+
+    def _search_conversations(self, query: str, params: dict) -> SkillResult:
+        """Search normalized conversation Markdown archives."""
+        from ink_core.conversation.manager import ConversationManager
+
+        manager = ConversationManager(self._workspace_root)
+        keywords = _tokenize(query)
+        if not keywords:
+            return SkillResult(
+                success=False,
+                message="No valid keywords in query.",
+                data={"query": query, "results": [], "suggestions": [
+                    "Try using shorter or simpler keywords.",
+                ]},
+            )
+
+        hits: list[dict] = []
+        for entry in manager.list_all():
+            conversation_id = str(entry.get("conversation_id", ""))
+            md_path = manager.resolve_path(conversation_id) / "index.md"
+            if not md_path.exists():
+                continue
+            text = md_path.read_text(encoding="utf-8")
+            count = _count_hits(text, keywords)
+            if count == 0:
+                continue
+            hits.append({
+                "conversation_id": conversation_id,
+                "content_type": "conversation",
+                "title": entry.get("title", ""),
+                "snippet": _extract_snippet(text, keywords),
+                "source": entry.get("source", ""),
+                "score": float(count),
+                "hit_count": count,
+                "created_at": entry.get("created_at", ""),
+            })
+
+        hits.sort(key=lambda hit: (hit["hit_count"], hit["created_at"]), reverse=True)
+        if not hits:
+            return SkillResult(
+                success=True,
+                message=f"No conversation results for '{query}'.",
+                data={
+                    "query": query,
+                    "results": [],
+                    "suggestions": _generate_suggestions(query, keywords),
+                },
+            )
+
+        return SkillResult(
+            success=True,
+            message=f"Found {len(hits)} conversation result(s) for '{query}'.",
+            data={"query": query, "results": hits},
+        )
+
+    def _merge_results(
+        self,
+        query: str,
+        article_result: SkillResult,
+        conversation_result: SkillResult,
+    ) -> SkillResult:
+        """Merge article and conversation results at the response layer."""
+        article_hits = [dict(hit) for hit in (article_result.data or {}).get("results", [])]
+        conversation_hits = [dict(hit) for hit in (conversation_result.data or {}).get("results", [])]
+
+        for hit in article_hits:
+            hit["content_type"] = "article"
+        merged = article_hits + conversation_hits
+        merged.sort(key=lambda hit: (hit.get("score", 0), hit.get("hit_count", 0)), reverse=True)
+
+        data = {"query": query, "results": merged}
+        if not merged:
+            data["suggestions"] = _generate_suggestions(query, _tokenize(query))
+        return SkillResult(
+            success=True,
+            message=f"Found {len(merged)} result(s) for '{query}' (articles + conversations).",
+            data=data,
         )
 
 
