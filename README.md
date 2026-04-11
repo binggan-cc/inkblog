@@ -1,6 +1,6 @@
 # Ink Blog Core
 
-> v0.3.0
+> v0.4.0
 
 [中文](#中文) | [English](#english)
 
@@ -45,6 +45,9 @@ cd inkblog
 
 # 安装
 pip install -e .
+
+# 安装可选增强依赖（中文 slug 拼音、mistune Markdown 渲染）
+pip install -e ".[all]"
 
 # 验证安装
 ink --help
@@ -217,6 +220,8 @@ ink publish --all --channels blog
 - 写入 `published_at` 时间戳
 - 更新 `_index/timeline.json`
 - 在 `.ink/publish-history/` 下记录发布历史
+
+当仅发布到 `mastodon` 时，当前版本会保存本地草稿并记录发布历史，但不会将文章状态推进到 `published`。
 
 ---
 
@@ -500,6 +505,15 @@ context_requirement: L2
 
 **必填 frontmatter 字段：** `skill`、`version`、`context_requirement`
 
+v0.4.0 的文件定义 Skill 使用严格 DSL 执行器，仅支持：
+
+```text
+read_content <L0|L1|L2>
+write_file <path>
+```
+
+`write_file` 的目标路径必须是相对路径，最终写入位置限制在 `.ink/skill-output/` 下。
+
 ---
 
 ### 部署
@@ -531,7 +545,7 @@ pytest tests/ -v
 
 **依赖：** `pyyaml>=6.0`、`jinja2>=3.1`
 
-**开发依赖：** `pytest>=7.0`、`hypothesis>=6.0`
+**开发依赖：** `pytest>=7.0`、`hypothesis>=6.0`、`pypinyin>=0.50`、`mistune>=3.0`
 
 **版本管理：** 遵循 [Semantic Versioning](https://semver.org/)（`MAJOR.MINOR.PATCH`）。版本号维护在 `pyproject.toml` 和 `README.md` 顶部。发版时打 annotated tag（`git tag -a vX.Y.Z`）。详细的发版流程和分支策略见 `.kiro/specs/ink-kernel-architecture/design.md` 第十三章。
 
@@ -539,6 +553,7 @@ pytest tests/ -v
 
 | 版本 | 日期 | 主题 |
 |------|------|------|
+| v0.4.0 | 2026-04-11 | 工程硬化：中文 slug、Markdown/XSS 安全、模板 autoescape、严格 SkillExecutor、发布状态修复 |
 | v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |
 | v0.2.0 | 2026-04-05 | 静态站生成、分层配置、改进 init |
 
@@ -581,6 +596,8 @@ Follows the **FS-as-DB** philosophy: the local filesystem is the sole data store
 git clone <repo-url>
 cd inkblog
 pip install -e .
+# Optional enhancements: pinyin slug generation and mistune Markdown rendering
+pip install -e ".[all]"
 ink --help
 ```
 
@@ -727,6 +744,8 @@ ink publish --all --channels blog
 | `mastodon` | `.ink/publish-output/mastodon/` | Plain text, ≤500 chars |
 
 After publishing: status updates to `published`, `published_at` timestamp is written, `_index/timeline.json` is updated, and publish history is recorded.
+
+When publishing only to `mastodon`, this version saves a local draft and records publish history, but does not advance the article status to `published`.
 
 ---
 
@@ -1006,6 +1025,15 @@ context_requirement: L2
 
 **Required frontmatter fields:** `skill`, `version`, `context_requirement`
 
+In v0.4.0, file-defined skills use a strict DSL executor with only these commands:
+
+```text
+read_content <L0|L1|L2>
+write_file <path>
+```
+
+`write_file` requires a relative path and writes only under `.ink/skill-output/`.
+
 ---
 
 ### Deployment
@@ -1037,7 +1065,7 @@ pytest tests/ -v
 
 **Dependencies:** `pyyaml>=6.0`, `jinja2>=3.1`
 
-**Dev dependencies:** `pytest>=7.0`, `hypothesis>=6.0`
+**Dev dependencies:** `pytest>=7.0`, `hypothesis>=6.0`, `pypinyin>=0.50`, `mistune>=3.0`
 
 **Versioning:** Follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`). Version is maintained in `pyproject.toml` and the top of `README.md`. Releases use annotated tags (`git tag -a vX.Y.Z`). See `.kiro/specs/ink-kernel-architecture/design.md` Chapter 13 for the full release process and branching strategy.
 
@@ -1045,5 +1073,6 @@ pytest tests/ -v
 
 | Version | Date | Summary |
 |---------|------|---------|
+| v0.4.0 | 2026-04-11 | Engineering hardening: Chinese slugs, Markdown/XSS safety, template autoescape, strict SkillExecutor, publish status fix |
 | v0.3.0 | 2026-04-11 | Agent mode (log/recall/serve/skill-*), property tests, docs consolidation |
 | v0.2.0 | 2026-04-05 | Static site generation, layered config, improved init |
