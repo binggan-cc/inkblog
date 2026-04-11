@@ -21,11 +21,11 @@ class TestGenerateSlug:
     def test_lowercase(self, resolver):
         assert resolver.generate_slug("My Blog Post") == "my-blog-post"
 
-    def test_cjk_replaced_with_hyphens(self, resolver):
+    def test_cjk_generates_usable_slug(self, resolver):
         slug = resolver.generate_slug("人工智能")
-        assert slug == "untitled" or (slug.replace("-", "") == "" or slug == "untitled")
-        # CJK chars become hyphens, then stripped → empty → "untitled"
-        assert slug == "untitled"
+        assert slug
+        assert slug != "untitled"
+        assert "人" not in slug
 
     def test_mixed_cjk_and_english(self, resolver):
         slug = resolver.generate_slug("AI人工智能Guide")
@@ -48,13 +48,15 @@ class TestGenerateSlug:
         assert not slug.endswith("-")
 
     def test_empty_title_returns_untitled(self, resolver):
-        assert resolver.generate_slug("") == "untitled"
+        assert resolver.generate_slug("").startswith("post-")
 
     def test_only_special_chars_returns_untitled(self, resolver):
-        assert resolver.generate_slug("!!!") == "untitled"
+        assert resolver.generate_slug("!!!").startswith("post-")
 
-    def test_only_cjk_returns_untitled(self, resolver):
-        assert resolver.generate_slug("中文标题") == "untitled"
+    def test_only_cjk_returns_pinyin_or_hash(self, resolver):
+        slug = resolver.generate_slug("中文标题")
+        assert slug
+        assert "中" not in slug
 
     def test_max_length_60(self, resolver):
         long_title = "a" * 100
@@ -72,10 +74,18 @@ class TestGenerateSlug:
         assert resolver.generate_slug("Top 10 Tips") == "top-10-tips"
 
     def test_underscores_treated_as_word_chars(self, resolver):
-        # \w includes underscores, so they stay
         slug = resolver.generate_slug("hello_world")
         assert "hello" in slug
         assert "world" in slug
+
+    def test_mixed_cjk_titles_do_not_collapse(self, resolver):
+        assert resolver.generate_slug("Python 深度学习") != resolver.generate_slug("Python 机器学习")
+
+    def test_cjk_without_pinyin_falls_back_to_ascii_hash(self, resolver, monkeypatch):
+        monkeypatch.setattr(resolver, "_check_pinyin", lambda: None)
+        slug = resolver.generate_slug("Python 深度学习")
+        assert slug.startswith("python-")
+        assert len(slug.rsplit("-", 1)[-1]) == 4
 
 
 class TestCheckConflict:

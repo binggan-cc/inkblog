@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,29 +42,87 @@ class SlugResolver:
     def generate_slug(self, title: str) -> str:
         """Generate a URL-friendly slug from a title.
 
-        - Converts to lowercase
-        - Replaces CJK/non-alphanumeric chars with hyphens
-        - Collapses multiple hyphens into one
-        - Strips leading/trailing hyphens
-        - Returns "untitled" if result is empty
-        - Truncates to 60 chars at word boundary if possible
+        English titles use the ASCII form directly.  CJK titles prefer
+        pinyin when pypinyin is installed; otherwise mixed titles fall back
+        to ASCII plus a short hash, and opaque titles use post-<hash>.
         """
-        slug = title.lower()
-        # Replace CJK characters and non-ASCII-alphanumeric chars with hyphens.
-        # Keep only ASCII letters (a-z) and digits (0-9).
-        slug = re.sub(r'[^a-z0-9]+', '-', slug)
-        # Collapse multiple hyphens
-        slug = re.sub(r'-+', '-', slug)
-        # Strip leading/trailing hyphens
-        slug = slug.strip('-')
+        title = title.strip()
+        ascii_slug = self._extract_ascii(title)
 
-        if not slug:
-            return 'untitled'
+        if not self._has_cjk(title):
+            if ascii_slug:
+                return self._truncate_slug(ascii_slug)
+            return self._hash_slug(title)
 
+        pinyin_slug = self._to_pinyin(title)
+        if pinyin_slug:
+            return self._truncate_slug(pinyin_slug)
+
+        if ascii_slug and len(ascii_slug.replace("-", "")) >= 3:
+            return self._truncate_slug(f"{ascii_slug}-{self._short_hash(title, 4)}")
+
+        return self._hash_slug(title)
+
+    def _extract_ascii(self, title: str) -> str:
+        """Extract lowercase ASCII word tokens as a slug."""
+        tokens = re.findall(r"[A-Za-z0-9]+", title.lower())
+        return "-".join(tokens)
+
+    def _has_cjk(self, title: str) -> bool:
+        """Return True if *title* contains a CJK unified ideograph."""
+        return re.search(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]", title) is not None
+
+    def _to_pinyin(self, title: str) -> str | None:
+        """Convert mixed ASCII/CJK title to an ASCII+pinyin slug when possible."""
+        pinyin = self._check_pinyin()
+        if pinyin is None:
+            return None
+
+        tokens: list[str] = []
+        ascii_buf: list[str] = []
+
+        def flush_ascii() -> None:
+            if ascii_buf:
+                tokens.append("".join(ascii_buf).lower())
+                ascii_buf.clear()
+
+        for char in title:
+            if char.isascii() and char.isalnum():
+                ascii_buf.append(char)
+                continue
+
+            flush_ascii()
+            if self._has_cjk(char):
+                syllables = pinyin(char)
+                tokens.extend(s for s in syllables if s)
+
+        flush_ascii()
+        slug = "-".join(tokens)
+        slug = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")
+        slug = re.sub(r"-+", "-", slug)
+        return slug or None
+
+    def _hash_slug(self, title: str) -> str:
+        """Return deterministic opaque fallback slug."""
+        return f"post-{self._short_hash(title, 8)}"
+
+    def _short_hash(self, title: str, length: int) -> str:
+        """Return a deterministic short hash for collision-resistant fallbacks."""
+        return hashlib.sha1(title.encode("utf-8")).hexdigest()[:length]
+
+    def _check_pinyin(self):
+        """Return pypinyin.lazy_pinyin when available, otherwise None."""
+        try:
+            from pypinyin import lazy_pinyin
+        except ImportError:
+            return None
+        return lazy_pinyin
+
+    def _truncate_slug(self, slug: str) -> str:
+        """Truncate slug to MAX_SLUG_LENGTH, preferring hyphen boundaries."""
         if len(slug) <= self.MAX_SLUG_LENGTH:
             return slug
 
-        # Truncate at word boundary (hyphen) if possible
         truncated = slug[:self.MAX_SLUG_LENGTH]
         last_hyphen = truncated.rfind('-')
         if last_hyphen > 0:
