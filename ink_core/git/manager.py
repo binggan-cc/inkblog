@@ -11,6 +11,10 @@ class GitManager:
     """Git 操作封装"""
 
     GITIGNORE_ENTRY = ".ink/sessions/"
+    GITIGNORE_ENTRIES = [
+        ".ink/sessions/",
+        "_node/conversations/raw/",
+    ]
 
     def __init__(self, workspace_root: Path) -> None:
         self.workspace_root = workspace_root
@@ -44,23 +48,22 @@ class GitManager:
             return False
 
     def ensure_gitignore(self) -> None:
-        """确保 .gitignore 中包含 .ink/sessions/ 排除规则。"""
+        """Ensure .gitignore contains Ink runtime ignore rules."""
         gitignore_path = self.workspace_root / ".gitignore"
 
         if gitignore_path.exists():
             content = gitignore_path.read_text(encoding="utf-8")
-            # Check if the entry is already present (exact line match)
             lines = content.splitlines()
-            if self.GITIGNORE_ENTRY in lines:
+            missing = [entry for entry in self.GITIGNORE_ENTRIES if entry not in lines]
+            if not missing:
                 return
-            # Append with a trailing newline
             separator = "\n" if content and not content.endswith("\n") else ""
             gitignore_path.write_text(
-                content + separator + self.GITIGNORE_ENTRY + "\n",
+                content + separator + "\n".join(missing) + "\n",
                 encoding="utf-8",
             )
         else:
-            gitignore_path.write_text(self.GITIGNORE_ENTRY + "\n", encoding="utf-8")
+            gitignore_path.write_text("\n".join(self.GITIGNORE_ENTRIES) + "\n", encoding="utf-8")
 
     def auto_commit(self, paths: list[Path], message: str) -> bool:
         """单路径 add + commit（供内部使用）。

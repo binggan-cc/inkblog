@@ -57,6 +57,7 @@ def test_ensure_gitignore_creates_file_when_missing(tmp_path):
     gitignore = tmp_path / ".gitignore"
     assert gitignore.exists()
     assert ".ink/sessions/" in gitignore.read_text()
+    assert "_node/conversations/raw/" in gitignore.read_text()
 
 
 def test_ensure_gitignore_appends_to_existing_file(tmp_path):
@@ -66,6 +67,7 @@ def test_ensure_gitignore_appends_to_existing_file(tmp_path):
     gm.ensure_gitignore()
     content = gitignore.read_text()
     assert ".ink/sessions/" in content
+    assert "_node/conversations/raw/" in content
     assert "*.pyc" in content  # original content preserved
 
 
@@ -75,6 +77,7 @@ def test_ensure_gitignore_idempotent(tmp_path):
     gm.ensure_gitignore()  # second call should not duplicate the entry
     content = (tmp_path / ".gitignore").read_text()
     assert content.count(".ink/sessions/") == 1
+    assert content.count("_node/conversations/raw/") == 1
 
 
 # ---------------------------------------------------------------------------

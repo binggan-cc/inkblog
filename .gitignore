@@ -15,6 +15,7 @@ build/
 .ink/sessions/
 .ink/publish-history/
 .ink/publish-output/
+_node/conversations/raw/
 
 # Generated site output
 _site/
