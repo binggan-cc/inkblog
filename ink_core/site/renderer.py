@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import jinja2
+from markupsafe import Markup
 
 if TYPE_CHECKING:
     from ink_core.fs.article import Article
@@ -281,17 +282,17 @@ class TemplateRenderer:
 
     def __init__(self, workspace_root: Path) -> None:
         self._workspace_root = workspace_root
-        self._env: jinja2.Environment | None = None
 
     def render_article(self, article: "Article", output_path: Path, site_title: str = "Blog") -> None:
         from ink_core.fs.markdown import parse_frontmatter
+        from ink_core.fs.markdown_renderer import render_markdown
 
         meta, body = parse_frontmatter(article.l2)
         title = meta.get("title", article.slug)
         date = article.date
         tags = meta.get("tags") or []
         abstract = article.l0 or ""
-        body_html = _md_to_html(body)
+        body_html = Markup(render_markdown(body, safe=True))
         toc = _extract_toc(body)
 
         ctx = {
@@ -306,8 +307,7 @@ class TemplateRenderer:
         }
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        # Use autoescape=False so body_html renders as HTML, not escaped text
-        html = self._render(self.ARTICLE_TEMPLATE_NAME, _DEFAULT_ARTICLE_TEMPLATE, ctx, autoescape=False)
+        html = self._render(self.ARTICLE_TEMPLATE_NAME, _DEFAULT_ARTICLE_TEMPLATE, ctx)
         output_path.write_text(html, encoding="utf-8")
 
     def render_index(self, articles: list["Article"], output_path: Path, site_title: str = "Blog",
@@ -358,31 +358,26 @@ class TemplateRenderer:
             "date_range": date_range,
         }
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        html = self._render(self.INDEX_TEMPLATE_NAME, _DEFAULT_INDEX_TEMPLATE, ctx, autoescape=False)
+        html = self._render(self.INDEX_TEMPLATE_NAME, _DEFAULT_INDEX_TEMPLATE, ctx)
         output_path.write_text(html, encoding="utf-8")
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _render(self, template_name: str, default_src: str, ctx: dict, autoescape: bool = False) -> str:
+    def _render(self, template_name: str, default_src: str, ctx: dict, autoescape: bool = True) -> str:
         user_template_path = self._workspace_root / self.TEMPLATE_DIR / template_name
         if user_template_path.exists():
-            env = self._get_fs_env(autoescape=autoescape)
+            template_dir = str(self._workspace_root / self.TEMPLATE_DIR)
+            env = jinja2.Environment(
+                loader=jinja2.FileSystemLoader(template_dir),
+                autoescape=autoescape,
+            )
             tmpl = env.get_template(template_name)
         else:
             env = jinja2.Environment(loader=jinja2.BaseLoader(), autoescape=autoescape)
             tmpl = env.from_string(default_src)
         return tmpl.render(**ctx)
-
-    def _get_fs_env(self, autoescape: bool = False) -> jinja2.Environment:
-        if self._env is None:
-            template_dir = str(self._workspace_root / self.TEMPLATE_DIR)
-            self._env = jinja2.Environment(
-                loader=jinja2.FileSystemLoader(template_dir),
-                autoescape=autoescape,
-            )
-        return self._env
 
 
 # ---------------------------------------------------------------------------
