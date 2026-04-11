@@ -1,5 +1,7 @@
 # Ink Blog Core
 
+> v0.2.0
+
 [中文](#中文) | [English](#english)
 
 ---
@@ -8,7 +10,7 @@
 
 ## 中文
 
-基于 **CLI + Skills + Markdown** 的个人博客系统核心层。
+基于 **CLI + Skills + Markdown** 的个人博客系统核心层，支持 Human 模式和 Agent 模式双模运行。
 
 遵循 **FS-as-DB** 哲学：本地文件系统作为唯一数据存储，目录结构表达关系，Markdown 作为内容源，自然语言或显式命令驱动操作执行。
 
@@ -19,6 +21,8 @@
 - [安装](#安装)
 - [快速开始](#快速开始)
 - [命令参考](#命令参考)
+  - [通用命令](#通用命令)
+  - [Agent 模式命令](#agent-模式命令)
 - [目录结构](#目录结构-1)
 - [文章生命周期](#文章生命周期)
 - [配置](#配置)
@@ -51,8 +55,11 @@ ink --help
 ### 快速开始
 
 ```bash
-# 1. 在当前目录初始化工作区
+# 1. 在当前目录初始化工作区（默认 human 模式）
 ink init
+
+# 1b. 或以 agent 模式初始化
+ink init --mode agent --agent-name MyAgent
 
 # 2. 编辑站点配置
 #    修改 .ink/config.yaml 中的 title、subtitle、author
@@ -79,13 +86,24 @@ ink build
 
 ### 命令参考
 
-#### `ink init`
+#### 通用命令
+
+##### `ink init`
 
 初始化工作区。在当前目录创建完整的 `.ink/` 目录结构、默认配置文件，并初始化 Git 仓库。
 
 ```bash
 ink init
+ink init --mode agent
+ink init --mode agent --agent-name MyAgent
 ```
+
+**参数：**
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `--mode` | 工作区模式：`human` 或 `agent` | `human` |
+| `--agent-name` | Agent 名称（仅 agent 模式） | `OpenClaw` |
 
 **执行内容：**
 - 创建 `.ink/sessions/`、`.ink/skills/`、`.ink/publish-history/`、`_index/`
@@ -95,7 +113,7 @@ ink init
 
 ---
 
-#### `ink new`
+##### `ink new`
 
 创建新文章，自动生成目录结构和三层上下文文件。
 
@@ -117,6 +135,8 @@ ink new "文章标题" --template tech-review
 | `--tags` | 逗号分隔的标签列表 | 空 |
 | `--template` | 模板名称，对应 `_templates/` 下的目录 | `default` |
 
+**内置模板：** `default`、`tech-review`、`weekly-report`
+
 **生成文件：**
 ```
 YYYY/MM/DD-slug/
@@ -128,7 +148,7 @@ YYYY/MM/DD-slug/
 
 ---
 
-#### `ink rebuild`
+##### `ink rebuild`
 
 重建所有文章的派生文件（`.abstract`、`.overview`）和时间线索引（`_index/timeline.json`）。
 
@@ -140,7 +160,7 @@ ink rebuild
 
 ---
 
-#### `ink analyze`
+##### `ink analyze`
 
 分析文章内容，提取 Wiki 链接关系，生成知识图谱（`_index/graph.json`）。
 
@@ -160,7 +180,7 @@ Wiki 链接格式：`[[文章名]]` 或 `[[YYYY/MM/DD-slug]]`（精确格式）
 
 ---
 
-#### `ink search`
+##### `ink search`
 
 在文章库中搜索，默认先搜 L0（摘要），不足 3 条时自动扩展到 L1（概览）。
 
@@ -174,7 +194,7 @@ ink search "关键词" --fulltext        # 启用全文搜索（L2）
 
 ---
 
-#### `ink publish`
+##### `ink publish`
 
 将文章发布到指定渠道。**文章 `status` 必须为 `ready` 才能发布。**
 
@@ -200,7 +220,7 @@ ink publish --all --channels blog
 
 ---
 
-#### `ink build`
+##### `ink build`
 
 生成静态 HTML 站点，输出到 `_site/`（可通过配置修改）。
 
@@ -216,12 +236,101 @@ ink build --all
 
 ---
 
-#### `ink skills list`
+##### `ink skills list`
 
 列出所有已注册的 Skills（内置 + 自定义）。
 
 ```bash
 ink skills list
+```
+
+---
+
+#### Agent 模式命令
+
+以下命令在 `mode: agent` 配置下可用，用于 AI Agent 的日记记录、记忆检索和技能管理。
+
+##### `ink log`
+
+向当天日记追加一条带时间戳和分类的条目。
+
+```bash
+ink log "今天学习了 Rust 的所有权机制"
+ink log "完成了搜索模块重构" --category work
+```
+
+**参数：**
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `content` | 条目内容（必填） | — |
+| `--category` | 分类：`work`、`learning`、`skill-installed`、`memory`、`note` | 配置中的 `agent.default_category`（默认 `note`） |
+
+日记文件存储在 `YYYY/MM/DD-journal/index.md`，复用文章的三层上下文结构。
+
+---
+
+##### `ink recall`
+
+检索过往日记条目，返回结构化 JSON。
+
+```bash
+ink recall                              # 返回最近条目
+ink recall "Rust"                       # 关键词搜索
+ink recall --category learning          # 按分类过滤
+ink recall --since 2026-04-01           # 按日期过滤
+ink recall "搜索" --limit 5             # 限制结果数量
+```
+
+**参数：**
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `query` | 搜索关键词（可选） | 空（返回最近条目） |
+| `--category` | 按分类过滤 | 不过滤 |
+| `--since` | 仅返回此日期之后的条目，格式 `YYYY-MM-DD` | 不过滤 |
+| `--limit` | 最大结果数（1–500） | `20` |
+
+---
+
+##### `ink serve`
+
+启动 HTTP API 服务器，暴露 `/log`、`/recall`、`/health` 端点。
+
+```bash
+ink serve
+```
+
+需要在配置中启用：`agent.http_api.enabled: true`，默认端口 `4242`。
+
+---
+
+##### `ink skill-record`
+
+记录一个外部技能到 `_index/skills.json`。
+
+```bash
+ink skill-record my-skill --source https://example.com/skill.md --version 1.0
+```
+
+---
+
+##### `ink skill-save`
+
+保存一个自定义技能 `.md` 文件到 `.ink/skills/`。
+
+```bash
+ink skill-save summarize --file ./my-summarize-skill.md
+```
+
+---
+
+##### `ink skill-list`
+
+列出所有已记录的技能（外部 + 自定义）。
+
+```bash
+ink skill-list
 ```
 
 ---
@@ -235,17 +344,27 @@ ink skills list
 │   ├── .abstract             # L0: 单行摘要，≤200 字符
 │   ├── .overview             # L1: YAML frontmatter + Markdown 章节
 │   └── assets/               # 图片等资源文件
+├── YYYY/MM/DD-journal/       # Agent 日记目录（agent 模式）
+│   ├── index.md              # 日记正文（带时间戳条目）
+│   ├── .abstract             # L0 摘要
+│   └── .overview             # L1 概览
 ├── .ink/                     # 工作区元数据
 │   ├── config.yaml           # 项目配置
-│   ├── sessions/             # 操作记录
-│   ├── publish-history/      # 发布历史
-│   ├── publish-output/       # 发布输出文件
+│   ├── sessions/             # 操作记录（gitignore）
+│   ├── publish-history/      # 发布历史（gitignore）
+│   ├── publish-output/       # 发布输出文件（gitignore）
 │   └── skills/               # 自定义 Skill 定义文件
-├── _index/                   # 全局索引（可重建）
-│   ├── timeline.json
-│   └── graph.json
-├── _site/                    # 静态站输出
+├── _index/                   # 全局索引（派生数据，可通过 rebuild 重建）
+│   ├── timeline.json         # 时间线索引
+│   ├── graph.json            # 知识图谱
+│   └── skills.json           # 技能注册表（agent 模式）
+├── _site/                    # 静态站输出（gitignore）
 ├── _templates/               # 文章模板
+│   ├── default/              # 默认模板
+│   ├── tech-review/          # 技术评测模板
+│   └── weekly-report/        # 周报模板
+├── ink_core/                 # 源码
+├── tests/                    # 测试
 ├── .gitignore
 ├── pyproject.toml
 └── README.md
@@ -301,11 +420,23 @@ tags: ["ai", "python"]
 
 ```yaml
 # .ink/config.yaml
+mode: human   # "human" | "agent"
+
 site:
   title: "My Blog"
   subtitle: ""
   author: ""
   base_url: ""
+
+# Agent 模式配置（仅 mode: agent 时生效）
+agent:
+  agent_name: "OpenClaw"
+  auto_create_daily: true
+  default_category: "note"
+  disable_human_commands: false
+  http_api:
+    enabled: false
+    port: 4242
 
 channels:
   blog:
@@ -409,7 +540,7 @@ pytest tests/ -v
 
 ## English
 
-A personal blog system core layer built on **CLI + Skills + Markdown**.
+A personal blog system core layer built on **CLI + Skills + Markdown**, supporting both Human mode and Agent mode.
 
 Follows the **FS-as-DB** philosophy: the local filesystem is the sole data store, directory structure expresses relationships, Markdown serves as the content source, and operations are driven by natural language or explicit commands.
 
@@ -420,6 +551,8 @@ Follows the **FS-as-DB** philosophy: the local filesystem is the sole data store
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Command Reference](#command-reference)
+  - [General Commands](#general-commands)
+  - [Agent Mode Commands](#agent-mode-commands)
 - [Directory Structure](#directory-structure)
 - [Article Lifecycle](#article-lifecycle)
 - [Configuration](#configuration)
@@ -447,8 +580,11 @@ ink --help
 ### Quick Start
 
 ```bash
-# 1. Initialize workspace
+# 1. Initialize workspace (default: human mode)
 ink init
+
+# 1b. Or initialize in agent mode
+ink init --mode agent --agent-name MyAgent
 
 # 2. Edit site config
 #    Update title, subtitle, author in .ink/config.yaml
@@ -476,17 +612,26 @@ open _site/index.html
 
 ### Command Reference
 
-#### `ink init`
+#### General Commands
+
+##### `ink init`
 
 Initialize workspace. Creates the `.ink/` directory structure, default config, and initializes a Git repository.
 
 ```bash
 ink init
+ink init --mode agent
+ink init --mode agent --agent-name MyAgent
 ```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `--mode` | Workspace mode: `human` or `agent` | `human` |
+| `--agent-name` | Agent name (agent mode only) | `OpenClaw` |
 
 ---
 
-#### `ink new`
+##### `ink new`
 
 Create a new article with auto-generated directory structure and three-layer context files.
 
@@ -506,6 +651,8 @@ ink new "Article Title" --template tech-review
 | `--tags` | Comma-separated tag list | Empty |
 | `--template` | Template name from `_templates/` | `default` |
 
+**Built-in templates:** `default`, `tech-review`, `weekly-report`
+
 **Generated files:**
 ```
 YYYY/MM/DD-slug/
@@ -517,7 +664,7 @@ YYYY/MM/DD-slug/
 
 ---
 
-#### `ink rebuild`
+##### `ink rebuild`
 
 Rebuild all derived files (`.abstract`, `.overview`) and timeline index (`_index/timeline.json`).
 
@@ -527,7 +674,7 @@ ink rebuild
 
 ---
 
-#### `ink analyze`
+##### `ink analyze`
 
 Analyze article content, extract wiki-link relationships, and generate a knowledge graph (`_index/graph.json`).
 
@@ -540,7 +687,7 @@ Wiki link format: `[[Article Name]]` or `[[YYYY/MM/DD-slug]]`
 
 ---
 
-#### `ink search`
+##### `ink search`
 
 Search the article library. Searches L0 (abstracts) first, auto-expands to L1 (overviews) if fewer than 3 results.
 
@@ -554,7 +701,7 @@ ink search "keyword" --fulltext        # Full-text search (L2)
 
 ---
 
-#### `ink publish`
+##### `ink publish`
 
 Publish articles to specified channels. **Article `status` must be `ready`.**
 
@@ -574,7 +721,7 @@ After publishing: status updates to `published`, `published_at` timestamp is wri
 
 ---
 
-#### `ink build`
+##### `ink build`
 
 Generate a static HTML site to `_site/`.
 
@@ -590,12 +737,97 @@ ink build --all    # All articles
 
 ---
 
-#### `ink skills list`
+##### `ink skills list`
 
 List all registered skills (built-in + custom).
 
 ```bash
 ink skills list
+```
+
+---
+
+#### Agent Mode Commands
+
+The following commands are available when `mode: agent` is configured, providing journal logging, memory recall, and skill management for AI Agents.
+
+##### `ink log`
+
+Append a timestamped, categorized entry to today's journal.
+
+```bash
+ink log "Learned about Rust ownership today"
+ink log "Finished search module refactor" --category work
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `content` | Entry content (required) | — |
+| `--category` | Category: `work`, `learning`, `skill-installed`, `memory`, `note` | `agent.default_category` (default `note`) |
+
+Journal files are stored at `YYYY/MM/DD-journal/index.md`, reusing the article three-layer context structure.
+
+---
+
+##### `ink recall`
+
+Search past journal entries, returns structured JSON.
+
+```bash
+ink recall                              # Latest entries
+ink recall "Rust"                       # Keyword search
+ink recall --category learning          # Filter by category
+ink recall --since 2026-04-01           # Filter by date
+ink recall "search" --limit 5           # Limit results
+```
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `query` | Search keyword (optional) | Empty (latest entries) |
+| `--category` | Filter by category | No filter |
+| `--since` | Only entries on or after this date (`YYYY-MM-DD`) | No filter |
+| `--limit` | Max results (1–500) | `20` |
+
+---
+
+##### `ink serve`
+
+Start HTTP API server exposing `/log`, `/recall`, `/health` endpoints.
+
+```bash
+ink serve
+```
+
+Requires `agent.http_api.enabled: true` in config. Default port: `4242`.
+
+---
+
+##### `ink skill-record`
+
+Record an external skill to `_index/skills.json`.
+
+```bash
+ink skill-record my-skill --source https://example.com/skill.md --version 1.0
+```
+
+---
+
+##### `ink skill-save`
+
+Save a custom skill `.md` file to `.ink/skills/`.
+
+```bash
+ink skill-save summarize --file ./my-summarize-skill.md
+```
+
+---
+
+##### `ink skill-list`
+
+List all recorded skills (external + custom).
+
+```bash
+ink skill-list
 ```
 
 ---
@@ -609,17 +841,27 @@ project-root/
 │   ├── .abstract             # L0: One-line summary, ≤200 chars
 │   ├── .overview             # L1: YAML frontmatter + Markdown sections
 │   └── assets/               # Images and resources
+├── YYYY/MM/DD-journal/       # Agent journal directories (agent mode)
+│   ├── index.md              # Journal body (timestamped entries)
+│   ├── .abstract             # L0 summary
+│   └── .overview             # L1 overview
 ├── .ink/                     # Workspace metadata
 │   ├── config.yaml           # Project config
-│   ├── sessions/             # Operation logs
-│   ├── publish-history/      # Publish history
-│   ├── publish-output/       # Publish output files
+│   ├── sessions/             # Operation logs (gitignore)
+│   ├── publish-history/      # Publish history (gitignore)
+│   ├── publish-output/       # Publish output files (gitignore)
 │   └── skills/               # Custom skill definitions
-├── _index/                   # Global indexes (rebuildable)
-│   ├── timeline.json
-│   └── graph.json
-├── _site/                    # Static site output
+├── _index/                   # Global indexes (derived data, rebuildable)
+│   ├── timeline.json         # Timeline index
+│   ├── graph.json            # Knowledge graph
+│   └── skills.json           # Skill registry (agent mode)
+├── _site/                    # Static site output (gitignore)
 ├── _templates/               # Article templates
+│   ├── default/              # Default template
+│   ├── tech-review/          # Tech review template
+│   └── weekly-report/        # Weekly report template
+├── ink_core/                 # Source code
+├── tests/                    # Tests
 ├── .gitignore
 ├── pyproject.toml
 └── README.md
@@ -675,11 +917,23 @@ tags: ["ai", "python"]
 
 ```yaml
 # .ink/config.yaml
+mode: human   # "human" | "agent"
+
 site:
   title: "My Blog"
   subtitle: ""
   author: ""
   base_url: ""
+
+# Agent mode config (only effective when mode: agent)
+agent:
+  agent_name: "OpenClaw"
+  auto_create_daily: true
+  default_category: "note"
+  disable_human_commands: false
+  http_api:
+    enabled: false
+    port: 4242
 
 channels:
   blog:

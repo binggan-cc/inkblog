@@ -22,6 +22,9 @@ _site/
 # Derived indexes (rebuildable)
 _index/
 
+# Agent skill index (derived, not versioned; only .ink/skills/*.md is committed)
+_index/skills.json
+
 # macOS
 .DS_Store
 2026

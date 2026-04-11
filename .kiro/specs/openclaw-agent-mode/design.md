@@ -28,7 +28,7 @@ OpenClaw Agent Mode 是 `ink-blog-core` 的 AI Agent 专用扩展，在 `feature
 ├─────────────────────────────────────────────────────────┤
 │                    Agent 命令层                          │
 │  LogCommand  │  RecallCommand  │  ServeCommand           │
-│  SkillRecordCommand  │  SkillSaveCommand                 │
+│  SkillRecordCommand  │  SkillSaveCommand  │  SkillListCommand  │
 ├─────────────────────────────────────────────────────────┤
 │                    Agent 核心服务层                      │
 │  JournalManager  │  RecallEngine  │  SkillRegistry       │
@@ -83,7 +83,8 @@ ink_core/
 │       ├── recall_command.py       # RecallCommand（BuiltinCommand）
 │       ├── serve_command.py        # ServeCommand（BuiltinCommand）
 │       ├── skill_record_command.py # SkillRecordCommand（BuiltinCommand）
-│       └── skill_save_command.py   # SkillSaveCommand（BuiltinCommand）
+│       ├── skill_save_command.py   # SkillSaveCommand（BuiltinCommand）
+│       └── skill_list_command.py  # SkillListCommand（BuiltinCommand）
 ├── core/
 │   ├── config.py                   # 扩展：新增 agent 配置块与 mode 验证
 │   └── errors.py                   # 扩展：新增 AgentModeError
@@ -206,8 +207,10 @@ class RecallCommand(BuiltinCommand):
         # 2. 验证 --limit 范围 [1, 500]
         # 3. 收集所有 journal entries（通过 JournalManager）
         # 4. 调用 RecallEngine.search()
-        # 5. 序列化为 Recall_Result JSON 输出到 stdout
-        # 6. 返回 SkillResult
+        # 5. 序列化为 Recall_Result JSON：
+        #    - print(json.dumps(recall_result)) 输出到 stdout（供 CLI/机器消费）
+        #    - 同时存入 SkillResult.data（供程序内部调用，无需解析 stdout）
+        # 6. 返回 SkillResult(success=True, data=recall_result_dict)
 ```
 
 ### 7. ServeCommand（HTTP API）
@@ -238,6 +241,21 @@ HTTP 路由映射：
 在现有 `InitCommand.run()` 中新增对 `--mode agent` 和 `--agent-name` 参数的处理：
 - 若 workspace 已初始化，仅更新 `mode` 和 `agent` 字段（deep merge）
 - 若 workspace 未初始化，执行标准 init 后追加 agent 配置
+
+---
+
+### 9. SkillListCommand
+
+```python
+class SkillListCommand(BuiltinCommand):
+    name = "skill-list"
+
+    def run(self, target: str | None, params: dict) -> SkillResult:
+        # 1. 检查 mode == agent，否则返回错误
+        # 2. 调用 SkillIndexManager.list_all()
+        # 3. 格式化打印：每行显示 name、type（external/custom）、version、installed_at
+        # 4. 返回 SkillResult(success=True, data={"skills": [<SkillRecord dicts>]})
+```
 
 ---
 
@@ -530,10 +548,10 @@ def test_log_recall_roundtrip(content, category): ...
 ```
 tests/
 ├── agent/
-│   ├── test_journal_manager.py      # 属性 1, 2, 3
+│   ├── test_journal_manager.py      # 属性 2, 3
 │   ├── test_recall_engine.py        # 属性 4, 5, 6, 7, 8
 │   ├── test_log_command.py          # 属性 9, 10
-│   ├── test_recall_command.py       # 属性 4-8
+│   ├── test_recall_command.py       # 属性 1（round-trip）
 │   ├── test_skill_index.py          # 属性 13, 14
 │   ├── test_config_agent.py         # 属性 11, 12
 │   └── test_human_compat.py         # 属性 15

@@ -116,8 +116,8 @@ and an optional HTTP API. All data remains on the local filesystem (FS-as-DB).
     - Validate `--limit` in [1, 500]; if invalid return `SkillResult(success=False)` with range message
     - Collect all entries via `JournalManager.list_journal_paths()` + `parse_entries()`
     - Call `RecallEngine.search()` with query, category, since, limit params
-    - Serialise to `RecallResult` JSON and print to stdout
-    - Return `SkillResult(success=True)`
+    - Serialise to `RecallResult` JSON: print to stdout (for CLI/machine consumers) AND store in `SkillResult.data` (for programmatic callers)
+    - Return `SkillResult(success=True, data=recall_result_dict)`
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.8, 4.9_
 
   - [ ]* 7.2 Write property test for log round-trip (Property 1)
@@ -160,6 +160,13 @@ and an optional HTTP API. All data remains on the local filesystem (FS-as-DB).
     - Call `SkillIndexManager.upsert()` and `JournalManager.append_entry(category="skill-installed")`
     - If `git.auto_commit`, commit with message `"skill: add <skill-name>"`
     - _Requirements: 9.6, 9.7, 9.8, 9.9, 9.10, 9.11_
+
+  - [ ] 9.3 Implement `SkillListCommand` in `ink_core/agent/commands/skill_list_command.py`
+    - Guard: agent mode check; return `SkillResult(success=False)` if not agent mode
+    - Call `SkillIndexManager.list_all()`
+    - Format and print each skill: name, type (`external`/`custom`), version, installed_at
+    - Return `SkillResult(success=True, data={"skills": [<SkillRecord dicts>]})`
+    - _Requirements: 9.12_
 
 - [ ] 10. Extend InitCommand for agent mode
   - Modify `InitCommand.run()` in `ink_core/cli/builtin.py` to handle `--mode` and `--agent-name` params
