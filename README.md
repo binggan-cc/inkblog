@@ -1,6 +1,6 @@
 # Ink Blog Core
 
-> v0.4.1
+> v0.5.0
 
 [中文](#中文) | [English](#english)
 
@@ -113,6 +113,7 @@ ink init --mode agent --agent-name MyAgent
 - 生成 `.ink/config.yaml`（如不存在）
 - 执行 `git init` 并创建初始提交
 - 在 `.gitignore` 中排除 `.ink/sessions/`
+- 在 `.gitignore` 中排除 `_node/conversations/raw/`，保留 normalized 对话归档纳入版本控制
 
 ---
 
@@ -191,9 +192,13 @@ Wiki 链接格式：`[[文章名]]` 或 `[[YYYY/MM/DD-slug]]`（精确格式）
 ink search "关键词"
 ink search "关键词" --tag ai          # 按标签过滤
 ink search "关键词" --fulltext        # 启用全文搜索（L2）
+ink search "关键词" --type conversation
+ink search "关键词" --type all
 ```
 
 **排序规则（优先级从高到低）：** 标题命中 → 标签命中 → L0 命中 → L1 命中 → L2 命中，同层级按命中次数降序，再按日期降序。
+
+默认只搜索 Article；`--type conversation` 搜索 `_node/conversations/normalized/` 下的对话 `index.md`；`--type all` 同时返回 Article 和 Conversation，并用 `content_type` 区分来源。
 
 ---
 
@@ -253,6 +258,42 @@ ink doctor --migrate-status
 ```
 
 `--migrate-status` 会将没有 `published_at` 的旧 `published` 文章迁移为 `drafted`，带有 `published_at` 的文章保持 `published`。
+
+---
+
+##### `ink import-conversation`
+
+导入本地 AI/Agent 对话缓存文件，支持 JSON、JSONL、纯文本。原始副本写入 `_node/conversations/raw/<source>/`，规范化对象写入 `_node/conversations/normalized/YYYY/MM/DD-source-slug/meta.json`。
+
+```bash
+ink import-conversation ./session.json --source openclaw
+ink import-conversation ./session.txt --source other --title "架构讨论"
+```
+
+##### `ink render-conversation`
+
+从 `meta.json` 重新生成对话 Markdown 归档。`--preview` 额外生成本地预览文件 `preview.html`；正式站点页面不在这里生成。
+
+```bash
+ink render-conversation 2026/04/11-openclaw-session-001
+ink render-conversation 2026/04/11-openclaw-session-001 --preview
+```
+
+##### `ink build-conversations`
+
+批量生成正式对话静态页面到 `_site/conversations/YYYY/MM/YYYY-MM-DD-source-slug/index.html`。该命令独立于 `ink build`，不会修改博客首页或 RSS。
+
+```bash
+ink build-conversations
+```
+
+##### `ink link-source`
+
+将文章与来源对话双向关联：Article frontmatter 写入 `source_conversations`，`_index/conversations.json` 写入 `linked_articles`。
+
+```bash
+ink link-source 2026/04/12-inkblog-node --conversation 2026/04/11-openclaw-session-001
+```
 
 ---
 
@@ -374,9 +415,14 @@ ink skill-list
 │   ├── publish-history/      # 发布历史（gitignore）
 │   ├── publish-output/       # 发布输出文件（gitignore）
 │   └── skills/               # 自定义 Skill 定义文件
+├── _node/                    # Node 级非 Article 内容
+│   └── conversations/
+│       ├── raw/              # 原始对话缓存副本（gitignore）
+│       └── normalized/       # 规范化对话；含 meta.json、index.md、assets/
 ├── _index/                   # 全局索引（派生数据，可通过 rebuild 重建）
 │   ├── timeline.json         # 时间线索引
 │   ├── graph.json            # 知识图谱
+│   ├── conversations.json    # 对话索引
 │   └── skills.json           # 技能注册表（agent 模式）
 ├── _site/                    # 静态站输出（gitignore）
 ├── _templates/               # 文章模板
@@ -477,6 +523,7 @@ git:
 
 ```
 ink build → 读取 timeline.json → 过滤 published → 生成 HTML → 生成 RSS → Git commit
+ink build-conversations → 读取 conversations.json → 生成 _site/conversations/ → 不修改首页/RSS
 ```
 
 **本地预览：**
@@ -568,6 +615,7 @@ pytest tests/ -v
 
 | 版本 | 日期 | 主题 |
 |------|------|------|
+| v0.5.0 | 2026-04-11 | Conversation Processing MVP：本地对话导入、归档渲染、静态对话页、来源链接、对话搜索 |
 | v0.4.1 | 2026-04-11 | 发布状态机扩展：drafted/syndicate/publish --push/build --include-drafted、CLI 标注 |
 | v0.4.0 | 2026-04-11 | 工程硬化：中文 slug、Markdown/XSS 安全、模板 autoescape、严格 SkillExecutor、发布状态修复 |
 | v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |
