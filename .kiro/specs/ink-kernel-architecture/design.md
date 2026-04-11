@@ -1,21 +1,93 @@
-# Ink Blog Core — 内核架构、改进路线与可扩展方向
+# InkBlog Node — 内核架构、改进路线与可扩展方向
 
-> 版本：v0.3.0-draft
-> 日期：2026-04-11
+> 版本：v0.4.0-draft
+> 日期：2026-04-12
 > 状态：设计讨论稿
-> 合并自：improvements.md (2026-04-10) + design.md (2026-04-11)
+> 合并自：improvements.md (2026-04-10) + design.md (2026-04-11) + Node 定位调整 (2026-04-12)
+
+---
+
+## 零、项目定位（v0.4.0 更新）
+
+### 从 "博客核心" 到 "知识节点"
+
+项目定位从 **Ink Blog Core**（个人博客系统核心层）调整为 **InkBlog Node**（面向单个 Agent / 单个区域的本地知识整理与 blog 产出节点）。
+
+**InkBlog Node 的职责：**
+- 吃进本地材料（文章、对话缓存、笔记）
+- 整理本地对话，形成 blog 草稿和已发布内容
+- 支持本地搜索、分析、回看
+- 为未来的总平台（Hub / Studio）提供整理后的知识单元
+
+**这个调整不推翻现有代码**，而是让已有的博客链路更顺：
+- `ArticleManager` 继续承担 blog 主对象管理
+- `SearchSkill` / `AnalyzeSkill` / `PublishSkill` 继续保留，逐步从"只面向 article"过渡到"Node 内的内容能力"
+- `build` 仍然先以 blog 站点为 MVP 输出
+
+### 当前阶段目标
+
+以 **blog 闭环** 为核心，验证以下链路是否顺畅：
+
+```
+本地材料进入 → 对话/文档整理 → 文章生成 → 发布/构建 → 回流沉淀
+```
+
+### 当前阶段非目标
+
+- 全类型 Artifact 统一模型
+- 图片/视频的一等对象管理
+- 复杂分类体系
+- 数据库接入
+- 上层 Hub 实现
+- 多节点协同编排
+
+### 架构原则（扩展）
+
+在原有三条原则基础上，新增两条：
+
+4. **Blog-first MVP**：当前以 blog 作为最基础的创作对象，优先验证闭环，不为未来大系统过度抽象。
+5. **Hub-ready, not Hub-now**：Node 当前独立运行，但命名、ID、导出结构需为未来 Hub 汇聚预留边界（node metadata、export manifest、canonical ID 规范）。
+
+### 演进路线
+
+| 阶段 | 主题 | 关键交付 |
+|------|------|---------|
+| v0.4.0 | 工程底座加固 | 中文 slug、状态机、Markdown 渲染器、Skill 执行引擎、安全转义 |
+| v0.5.0 | Conversation Processing MVP | 对话导入、规范化、Markdown/HTML 渲染、article ↔ conversation 来源链 |
+| v0.6.0 | Node Export Readiness | node metadata、export manifest、unified external IDs |
+| v0.7.0+ | 内核重构 | 统一内容模型（ContentItem）、统一检索引擎 |
+
+### Conversation 作为一等素材来源
+
+本地 AI/Agent 对话缓存是 Node 的核心素材来源之一。v0.5.0 将新增并行主线：
+
+```
+Conversation Ingest → Normalize → Markdown/HTML Render → Blog Reuse
+```
+
+文章允许记录来源会话（`source_conversations`、`derived_from`），实现：
+- 文章可追溯来源对话
+- 对话可反查产出文章
+
+详细设计见独立 spec：`.kiro/specs/ink-node-conversation/`
+
+### _index 策略
+
+继续保持最小化：`timeline.json`、`graph.json`，必要时增加 `conversations.json` 清单。不引入 tags 全量索引、分类树、搜索倒排等——未来这些将由数据库或搜索引擎承担。
 
 ---
 
 ## 一、设计哲学
 
-Ink 的核心身份是一个 **文件系统原生的内容操作系统**（Content OS on Filesystem）。
+Ink 的核心身份是一个 **文件系统原生的内容操作系统**（Content OS on Filesystem），定位为面向单个 Agent 或单个知识域的本地知识整理节点。
 
-三条不可违背的原则：
+五条不可违背的原则：
 
 1. **FS-as-DB**：本地文件系统是唯一存储。没有数据库，没有远程服务依赖。目录结构即数据模型，Markdown 即内容源，JSON 即索引。所有状态都可以用 `ls` 和 `cat` 观察。
 2. **最小依赖**：运行时仅依赖 `pyyaml` + `jinja2`。任何新功能如果需要引入新依赖，必须作为可选依赖（`extras_require`），核心路径不受影响。
 3. **双模对称**：human 模式和 agent 模式共享同一套基础设施（ArticleManager、InkConfig、GitManager、IndexManager），区别仅在上层命令和交互协议。
+4. **Blog-first MVP**：以 blog 为当前最基础的创作对象，优先验证闭环，不为未来大系统过度抽象。
+5. **Hub-ready, not Hub-now**：Node 当前独立运行，但命名、ID、导出结构需为未来 Hub 汇聚预留边界。
 
 ---
 
@@ -279,20 +351,25 @@ class SkillExecutor:
 
 ## 七、版本路线图与功能规划
 
-### 版本总览
+### 版本总览（v0.4.0 更新）
 
 | 版本 | 主题 | 关键交付 |
 |------|------|---------|
 | v0.2.1 | 质量加固 | 13 个属性测试 + HTTP API 集成测试 + L0/L1 同步更新修复 |
-| v0.3.0 | 内核增强 | `ink doctor` + `ink stats` + `ink archive` |
-| v0.4.0 | 用户价值 | `ink digest` + `ink promote` + Shell 补全 + `ink export` + 最小 Skill 执行引擎 |
-| v0.5.0 | 生态扩展 | MCP Server 接入 + 可选语义检索 |
-| v0.6.0 | 内核重构 | 统一内容模型（ContentItem）+ 统一检索引擎 |
-| v1.0.0 | 稳定版 | 完整 Skill 执行引擎 + Skill 市场 |
+| v0.3.0 | Agent 模式 | log/recall/serve/skill-*、属性测试、文档整合 |
+| **v0.4.0** | **工程底座加固** | **中文 slug、发布状态机、Markdown 渲染器（mistune）、Skill 执行引擎、Jinja2 安全转义、CLI 帮助分组** |
+| **v0.5.0** | **Conversation Processing MVP** | **对话导入/规范化、Markdown/HTML 渲染、article ↔ conversation 来源链、`_index/conversations.json`** |
+| v0.6.0 | Node Export Readiness | node metadata、export manifest、unified external IDs、MCP Server 接入 |
+| v0.7.0 | 内核重构 | 统一内容模型（ContentItem）+ 统一检索引擎 |
+| v1.0.0 | 稳定版 | 完整 Skill 执行引擎 + Skill 市场 + `ink doctor` / `ink stats` / `ink archive` |
 
-> 注：v0.6.0 的内核重构放在生态扩展之后，是因为当前架构足以支撑 v0.3–v0.5 的功能。
-> 过早重构会增加风险，等积累了更多内容类型的实际需求后再做统一抽象更稳妥。
-> 但建议在 v0.3.0 引入 `ContentItem` 的接口定义（不做完整重构），让新功能面向接口编程。
+> 注：v0.4.0 聚焦修工程硬伤，不引入新概念。v0.5.0 引入 Conversation 作为第二内容类型，
+> 验证 Node 的知识整理能力。v0.7.0 的内核重构等积累了 article + conversation 两种内容类型的
+> 实际需求后再做统一抽象更稳妥。
+>
+> 详细设计：
+> - v0.4.0 → `.kiro/specs/ink-engineering-hardening/`
+> - v0.5.0 → `.kiro/specs/ink-node-conversation/`（待创建）
 
 
 ### v0.2.1 — 质量加固
@@ -693,3 +770,4 @@ git push origin main --tags
 |------|------|------|
 | v0.2.0 | 2026-04-05 | 静态站生成、分层配置、改进 init |
 | v0.3.0 | 2026-04-11 | Agent 模式（log/recall/serve/skill-*）、属性测试、文档整合 |
+| v0.4.0-draft | 2026-04-12 | 项目定位调整为 InkBlog Node、工程底座加固设计、Conversation Pipeline 规划 |

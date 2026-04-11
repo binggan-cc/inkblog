@@ -13,9 +13,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+pinyin = ["pypinyin>=0.50"]
+markdown = ["mistune>=3.0"]
+all = ["pypinyin>=0.50", "mistune>=3.0"]
 dev = [
     "pytest>=7.0",
     "hypothesis>=6.0",
+    "pypinyin>=0.50",
+    "mistune>=3.0",
 ]
 
 [project.scripts]
