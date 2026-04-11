@@ -56,6 +56,22 @@ class LogCommand(BuiltinCommand):
 
         today = date.today().isoformat()
         journal_mgr = JournalManager(self._root, config)
+
+        # Req 1.4: auto_create_daily controls whether journal is created on demand
+        if not config.get("agent.auto_create_daily", True):
+            journal_dir = self._root / today.replace("-", "/", 1).replace("-", "/", 1)
+            # Derive path: YYYY/MM/DD-journal/index.md
+            year, month, day = today.split("-")
+            index_path = self._root / year / month / f"{day}-journal" / "index.md"
+            if not index_path.exists():
+                return SkillResult(
+                    success=False,
+                    message=(
+                        f"No journal exists for {today} and auto_create_daily is disabled. "
+                        "Create the journal manually or set agent.auto_create_daily: true in config."
+                    ),
+                )
+
         entry = journal_mgr.append_entry(today, category, content)
 
         journal_path = journal_mgr.get_or_create_journal(today)[0]

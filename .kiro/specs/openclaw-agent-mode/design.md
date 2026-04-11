@@ -548,10 +548,10 @@ def test_log_recall_roundtrip(content, category): ...
 ```
 tests/
 ├── agent/
-│   ├── test_journal_manager.py      # 属性 1, 2, 3
+│   ├── test_journal_manager.py      # 属性 2, 3
 │   ├── test_recall_engine.py        # 属性 4, 5, 6, 7, 8
 │   ├── test_log_command.py          # 属性 9, 10
-│   ├── test_recall_command.py       # 属性 4-8
+│   ├── test_recall_command.py       # 属性 1（round-trip）
 │   ├── test_skill_index.py          # 属性 13, 14
 │   ├── test_config_agent.py         # 属性 11, 12
 │   └── test_human_compat.py         # 属性 15
