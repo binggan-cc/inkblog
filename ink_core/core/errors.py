@@ -51,3 +51,19 @@ class LayerCorruptError(Exception):
 
 class ConfigError(Exception):
     """config.yaml format error."""
+
+
+class ConversationSourceNotFoundError(Exception):
+    """Conversation source cache file does not exist."""
+
+
+class ConversationFormatDetectionError(Exception):
+    """Conversation source format could not be detected."""
+
+
+class ConversationDuplicateImportError(Exception):
+    """Conversation source content has already been imported."""
+
+
+class ConversationNotFoundError(Exception):
+    """Conversation_ID could not be resolved to a normalized conversation."""
