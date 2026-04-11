@@ -44,6 +44,13 @@ class Conversation:
     status: str = ConversationStatus.IMPORTED.value
     assets: list[str] = field(default_factory=list)
 
+    def __post_init__(self) -> None:
+        """Lightweight field validation."""
+        if not self.participants:
+            raise ValueError("participants must be a non-empty list")
+        if not ConversationStatus.is_valid(self.status):
+            raise ValueError(f"invalid status: {self.status!r} (expected 'imported' or 'archived')")
+
     def to_dict(self) -> dict:
         """Serialize the conversation to a JSON-compatible dictionary."""
         return {

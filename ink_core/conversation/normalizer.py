@@ -33,7 +33,7 @@ class ConversationNormalizer:
         else:
             messages, meta = [], {}
 
-        fallback_time = imported_at or "1970-01-01T00:00:00"
+        fallback_time = imported_at or datetime.now().replace(microsecond=0).isoformat()
         created_at = str(meta.get("created_at") or self._first_timestamp(messages) or fallback_time)
         updated_at = str(meta.get("updated_at") or self._last_timestamp(messages) or created_at)
         participants = self._participants(messages, meta.get("participants"))

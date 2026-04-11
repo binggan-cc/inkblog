@@ -49,7 +49,7 @@ v0.5.0 SHALL 包含以下能力：
 8. Article ↔ Conversation 双向来源链接
 9. 对话相关 CLI 命令（导入、渲染、批量构建、来源绑定）
 10. SearchSkill 扩展：支持对话内容搜索
-11. SiteBuilder 扩展：对话页面构建入口
+11. BuildConversationsCommand 独立对话页面构建入口
 12. `_index/conversations.json` 对话清单索引
 
 ### 3.2 Out of Scope
@@ -359,8 +359,8 @@ source_notes: "基于与 OpenClaw 的架构讨论整理"
 2. WHEN 执行 `ink build-conversations` 时，THE System SHALL 读取 `_index/conversations.json` 获取对话列表
 3. WHEN 处理每个对话时，THE System SHALL 在 `_site/conversations/YYYY/MM/YYYY-MM-DD-<source>-<session-slug>/index.html` 路径生成对应 HTML 页面
 4. WHEN `ink build-conversations` 执行完成时，THE CLI SHALL 输出构建统计信息，至少包含：生成的 HTML 页面数量、构建耗时
-5. THE SiteBuilder SHALL 新增对话页面构建入口，不改变博客主线构建逻辑
-6. WHEN 执行 `ink build` 时，THE SiteBuilder SHALL NOT 自动构建对话页面；对话页面 SHALL 通过 `ink build-conversations` 独立构建
+5. THE BuildConversationsCommand SHALL 提供独立对话页面构建入口，不改变博客主线构建逻辑
+6. WHEN 执行 `ink build` 时，THE System SHALL NOT 自动构建对话页面；对话页面 SHALL 通过 `ink build-conversations` 独立构建
 7. THE `build-conversations` 命令 SHALL NOT 修改博客首页文章列表或 RSS feed 生成结果；对话内容 SHALL NOT 出现在 `_site/index.html` 或 `_site/feed.xml` 中
 8. IF `_index/conversations.json` 不存在或为空，THEN THE System SHALL 输出无对话可构建的提示信息
 

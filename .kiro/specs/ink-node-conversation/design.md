@@ -18,7 +18,7 @@ InkBlog Node v0.5.0 引入 Conversation 作为第二内容类型，实现本地 
 | 重复检测 | SHA256 fingerprint 全局扫描 | 跨路径去重，不依赖文件名 |
 | HTML 渲染 | Jinja2 + autoescape + `render_markdown()` | 复用 v0.4.0 基础设施，XSS 安全 |
 | 搜索扩展 | `--type` 参数分流，不引入统一模型 | v0.5.0 最小侵入，v0.7.0 再做统一 |
-| 构建隔离 | `ink build-conversations` 独立命令 | 不改变 `ink build` 博客主链路 |
+| 构建隔离 | `BuildConversationsCommand` 独立构建，不扩展 `SiteBuilder` | 对话构建完全不碰博客主链路代码，隔离性更强 |
 | 索引管理 | `_index/conversations.json` 独立索引 | 与 `timeline.json` 并行，不混合 |
 | 渲染职责分离 | `render-conversation` 只生成 Markdown（可选 preview.html），`build-conversations` 生成 `_site/` 下的 `index.html` | 避免两处同时写 HTML 造成混淆 |
 | Session Slug | 复用 `SlugResolver` 无状态逻辑 | 中文标题生成拼音 slug，与 Article slug 行为一致 |
