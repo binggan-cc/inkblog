@@ -17,6 +17,9 @@ build/
 .ink/publish-output/
 _node/conversations/raw/
 
+# Conversation preview files (local-only, regenerable)
+_node/conversations/normalized/**/preview.html
+
 # Generated site output
 _site/
 

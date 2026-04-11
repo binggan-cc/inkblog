@@ -1,6 +1,6 @@
 # Ink Blog Core
 
-> v0.5.0
+> v0.5.1
 
 [中文](#中文) | [English](#english)
 
@@ -154,13 +154,15 @@ YYYY/MM/DD-slug/
 
 ##### `ink rebuild`
 
-重建所有文章的派生文件（`.abstract`、`.overview`）和时间线索引（`_index/timeline.json`）。
+重建所有派生文件和索引。默认同时重建文章（`.abstract`、`.overview`、`timeline.json`）和对话（`conversations.json`、`index.md`）。
 
 ```bash
-ink rebuild
+ink rebuild                  # 重建全部
+ink rebuild --articles       # 仅重建文章
+ink rebuild --conversations  # 仅重建对话索引和 Markdown
 ```
 
-适用场景：批量修改文章内容后、`.abstract`/`.overview` 文件损坏或丢失时。
+适用场景：批量修改内容后、派生文件损坏或丢失时、`conversations.json` 索引需要刷新时。
 
 ---
 
@@ -443,7 +445,7 @@ ink skill-list
 **状态流转：**
 
 ```
-draft → review → ready → published → archived
+draft → review → ready → drafted → published → archived
 ```
 
 | 状态 | 说明 |
@@ -451,6 +453,7 @@ draft → review → ready → published → archived
 | `draft` | 草稿，新建文章的默认状态 |
 | `review` | 审阅中 |
 | `ready` | 准备发布，`ink publish` 的前置条件 |
+| `drafted` | 已生成发布产物，等待推送（`ink syndicate` 的前置条件） |
 | `published` | 已发布 |
 | `archived` | 已归档 |
 
@@ -615,6 +618,7 @@ pytest tests/ -v
 
 | 版本 | 日期 | 主题 |
 |------|------|------|
+| v0.5.1 | 2026-04-11 | Node 收尾与稳定化：rebuild 补齐对话重建、preview.html 语义定死、文档一致性修正、搜索结果 content_type 统一 |
 | v0.5.0 | 2026-04-11 | Conversation Processing MVP：本地对话导入、归档渲染、静态对话页、来源链接、对话搜索 |
 | v0.4.1 | 2026-04-11 | 发布状态机扩展：drafted/syndicate/publish --push/build --include-drafted、CLI 标注 |
 | v0.4.0 | 2026-04-11 | 工程硬化：中文 slug、Markdown/XSS 安全、模板 autoescape、严格 SkillExecutor、发布状态修复 |
@@ -756,10 +760,12 @@ YYYY/MM/DD-slug/
 
 ##### `ink rebuild`
 
-Rebuild all derived files (`.abstract`, `.overview`) and timeline index (`_index/timeline.json`).
+Rebuild all derived files and indexes. By default rebuilds both articles (`.abstract`, `.overview`, `timeline.json`) and conversations (`conversations.json`, `index.md`).
 
 ```bash
-ink rebuild
+ink rebuild                  # Rebuild everything
+ink rebuild --articles       # Articles only
+ink rebuild --conversations  # Conversations only
 ```
 
 ---
@@ -785,9 +791,13 @@ Search the article library. Searches L0 (abstracts) first, auto-expands to L1 (o
 ink search "keyword"
 ink search "keyword" --tag ai          # Filter by tag
 ink search "keyword" --fulltext        # Full-text search (L2)
+ink search "keyword" --type conversation
+ink search "keyword" --type all
 ```
 
 **Ranking (highest to lowest):** Title match → Tag match → L0 match → L1 match → L2 match. Within the same level, sorted by hit count descending, then by date descending.
+
+Default searches articles only. `--type conversation` searches `_node/conversations/normalized/` conversation archives. `--type all` returns both articles and conversations, distinguished by `content_type`.
 
 ---
 
@@ -845,6 +855,42 @@ ink doctor --migrate-status
 ```
 
 `--migrate-status` migrates legacy `published` articles without `published_at` to `drafted`; articles with `published_at` remain `published`.
+
+---
+
+##### `ink import-conversation`
+
+Import a local AI/Agent conversation cache file. Supports JSON, JSONL, and plain text. Raw copies go to `_node/conversations/raw/<source>/`, normalized objects to `_node/conversations/normalized/YYYY/MM/DD-source-slug/meta.json`.
+
+```bash
+ink import-conversation ./session.json --source openclaw
+ink import-conversation ./session.txt --source other --title "Architecture Discussion"
+```
+
+##### `ink render-conversation`
+
+Re-generate conversation Markdown archive from `meta.json`. `--preview` also generates a local preview file `preview.html`; formal site pages are not generated here.
+
+```bash
+ink render-conversation 2026/04/11-openclaw-session-001
+ink render-conversation 2026/04/11-openclaw-session-001 --preview
+```
+
+##### `ink build-conversations`
+
+Batch-generate formal conversation static pages to `_site/conversations/YYYY/MM/YYYY-MM-DD-source-slug/index.html`. Independent from `ink build` — does not modify the homepage or RSS feed.
+
+```bash
+ink build-conversations
+```
+
+##### `ink link-source`
+
+Bidirectionally link an article to a source conversation: writes `source_conversations` to article frontmatter and `linked_articles` to `_index/conversations.json`.
+
+```bash
+ink link-source 2026/04/12-inkblog-node --conversation 2026/04/11-openclaw-session-001
+```
 
 ---
 
@@ -962,9 +1008,14 @@ project-root/
 │   ├── publish-history/      # Publish history (gitignore)
 │   ├── publish-output/       # Publish output files (gitignore)
 │   └── skills/               # Custom skill definitions
+├── _node/                    # Node-level non-Article content
+│   └── conversations/
+│       ├── raw/              # Original conversation cache copies (gitignore)
+│       └── normalized/       # Normalized conversations: meta.json, index.md, assets/
 ├── _index/                   # Global indexes (derived data, rebuildable)
 │   ├── timeline.json         # Timeline index
 │   ├── graph.json            # Knowledge graph
+│   ├── conversations.json    # Conversation index
 │   └── skills.json           # Skill registry (agent mode)
 ├── _site/                    # Static site output (gitignore)
 ├── _templates/               # Article templates
@@ -985,7 +1036,7 @@ project-root/
 **Status flow:**
 
 ```
-draft → review → ready → published → archived
+draft → review → ready → drafted → published → archived
 ```
 
 | Status | Description |
@@ -993,6 +1044,7 @@ draft → review → ready → published → archived
 | `draft` | Draft, default for new articles |
 | `review` | Under review |
 | `ready` | Ready to publish, prerequisite for `ink publish` |
+| `drafted` | Publishing artifacts generated, awaiting syndication (`ink syndicate`) |
 | `published` | Published |
 | `archived` | Archived |
 
@@ -1065,6 +1117,7 @@ git:
 
 ```
 ink build → Read timeline.json → Filter published → Generate HTML → Generate RSS → Git commit
+ink build-conversations → Read conversations.json → Generate _site/conversations/ → Does not modify homepage/RSS
 ```
 
 **Local preview:**
@@ -1083,11 +1136,14 @@ Place Jinja2 template files in `_templates/site/` to override built-in defaults.
 
 ```
 _templates/site/
-├── article.html    # Article page template
-└── index.html      # Homepage template
+├── article.html       # Article page template
+├── conversation.html  # Conversation page template
+└── index.html         # Homepage template
 ```
 
 **Article template variables:** `title`, `site_title`, `date`, `tags`, `abstract`, `body_html`, `canonical_id`
+
+**Conversation template variables:** `title`, `site_title`, `source`, `created_at`, `participants`, `message_count`, `conversation_id`, `messages`
 
 **Homepage template variables:** `site_title`, `site_subtitle`, `site_author`, `year`, `articles`, `total_articles`, `total_words`, `date_range`
 
@@ -1156,6 +1212,8 @@ pytest tests/ -v
 
 | Version | Date | Summary |
 |---------|------|---------|
+| v0.5.1 | 2026-04-11 | Node stabilization: rebuild covers conversations, preview.html gitignore, docs consistency, search content_type unification |
+| v0.5.0 | 2026-04-11 | Conversation Processing MVP: local conversation import, archive rendering, static conversation pages, source linking, conversation search |
 | v0.4.1 | 2026-04-11 | Publish state machine: drafted/syndicate/publish --push/build --include-drafted, CLI labels |
 | v0.4.0 | 2026-04-11 | Engineering hardening: Chinese slugs, Markdown/XSS safety, template autoescape, strict SkillExecutor, publish status fix |
 | v0.3.0 | 2026-04-11 | Agent mode (log/recall/serve/skill-*), property tests, docs consolidation |

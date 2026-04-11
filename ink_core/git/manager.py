@@ -14,6 +14,7 @@ class GitManager:
     GITIGNORE_ENTRIES = [
         ".ink/sessions/",
         "_node/conversations/raw/",
+        "_node/conversations/normalized/**/preview.html",
     ]
 
     def __init__(self, workspace_root: Path) -> None:

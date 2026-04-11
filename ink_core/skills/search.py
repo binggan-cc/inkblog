@@ -250,8 +250,6 @@ class SearchSkill(Skill):
         article_hits = [dict(hit) for hit in (article_result.data or {}).get("results", [])]
         conversation_hits = [dict(hit) for hit in (conversation_result.data or {}).get("results", [])]
 
-        for hit in article_hits:
-            hit["content_type"] = "article"
         merged = article_hits + conversation_hits
         merged.sort(key=lambda hit: (hit.get("score", 0), hit.get("hit_count", 0)), reverse=True)
 
@@ -473,6 +471,7 @@ def _hit_to_dict(hit: SearchHit) -> dict:
     """Serialise a SearchHit to a plain dict."""
     return {
         "canonical_id": hit.canonical_id,
+        "content_type": "article",
         "title": hit.title,
         "abstract": hit.abstract,
         "snippet": hit.snippet,

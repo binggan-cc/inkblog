@@ -261,7 +261,7 @@ class SkillsListCommand(BuiltinCommand):
 # ---------------------------------------------------------------------------
 
 class RebuildCommand(BuiltinCommand):
-    """Rebuild all derived files (.abstract, .overview) and timeline index."""
+    """Rebuild all derived files and indexes (articles + conversations)."""
 
     def __init__(self, workspace_root: Path) -> None:
         self._workspace_root = workspace_root
@@ -271,43 +271,101 @@ class RebuildCommand(BuiltinCommand):
         return "rebuild"
 
     def run(self, target: str | None, params: dict) -> SkillResult:
-        from ink_core.fs.article import ArticleManager
-        from ink_core.fs.index_manager import IndexManager
-
-        manager = ArticleManager(self._workspace_root)
-        index_mgr = IndexManager(self._workspace_root)
-
-        articles = manager.list_all()
+        scope = params.get("scope")  # None = all, "conversations", "articles"
         all_changed: list[Path] = []
         errors: list[str] = []
+        article_count = 0
+        conv_count = 0
 
-        for article in articles:
-            try:
-                changed = manager.update_layers(article)
-                all_changed.extend(changed)
-                # Re-read to get updated l1 for timeline
-                result = manager.read(article.path)
-                index_mgr.update_timeline(result.article)
-                timeline_path = self._workspace_root / "_index" / "timeline.json"
-                if timeline_path.exists() and timeline_path not in all_changed:
-                    all_changed.append(timeline_path)
-            except Exception as exc:
-                errors.append(f"{article.canonical_id}: {exc}")
+        # --- Articles (unless --conversations only) ---
+        if scope != "conversations":
+            article_count, article_changed, article_errors = self._rebuild_articles()
+            all_changed.extend(article_changed)
+            errors.extend(article_errors)
+
+        # --- Conversations (unless --articles only) ---
+        if scope != "articles":
+            conv_count, conv_changed, conv_errors = self._rebuild_conversations()
+            all_changed.extend(conv_changed)
+            errors.extend(conv_errors)
+
+        # --- Summary ---
+        parts = []
+        if scope != "conversations":
+            parts.append(f"{article_count} article(s)")
+        if scope != "articles":
+            parts.append(f"{conv_count} conversation(s)")
+        summary = "Rebuilt " + " + ".join(parts) + "."
 
         if errors:
             return SkillResult(
                 success=False,
-                message=f"Rebuild completed with {len(errors)} error(s):\n" + "\n".join(errors),
-                data={"rebuilt": len(articles) - len(errors), "errors": errors},
+                message=f"{summary} ({len(errors)} error(s)):\n" + "\n".join(errors),
+                data={"rebuilt_articles": article_count, "rebuilt_conversations": conv_count, "errors": errors},
                 changed_files=all_changed,
             )
 
         return SkillResult(
             success=True,
-            message=f"Rebuilt {len(articles)} article(s).",
-            data={"rebuilt": len(articles)},
+            message=summary,
+            data={"rebuilt_articles": article_count, "rebuilt_conversations": conv_count},
             changed_files=all_changed,
         )
+
+    def _rebuild_articles(self) -> tuple[int, list[Path], list[str]]:
+        from ink_core.fs.article import ArticleManager
+        from ink_core.fs.index_manager import IndexManager
+
+        manager = ArticleManager(self._workspace_root)
+        index_mgr = IndexManager(self._workspace_root)
+        articles = manager.list_all()
+        changed: list[Path] = []
+        errors: list[str] = []
+
+        for article in articles:
+            try:
+                changed.extend(manager.update_layers(article))
+                result = manager.read(article.path)
+                index_mgr.update_timeline(result.article)
+                timeline_path = self._workspace_root / "_index" / "timeline.json"
+                if timeline_path.exists() and timeline_path not in changed:
+                    changed.append(timeline_path)
+            except Exception as exc:
+                errors.append(f"{article.canonical_id}: {exc}")
+
+        return len(articles) - len(errors), changed, errors
+
+    def _rebuild_conversations(self) -> tuple[int, list[Path], list[str]]:
+        from ink_core.conversation.manager import ConversationManager
+        from ink_core.conversation.markdown_renderer import ConversationMarkdownRenderer
+
+        manager = ConversationManager(self._workspace_root)
+        changed: list[Path] = []
+        errors: list[str] = []
+
+        if not manager.normalized_root.exists():
+            return 0, changed, errors
+
+        # Force-rebuild the conversation index
+        entries = manager._rebuild_index()
+        if manager.index_path.exists():
+            changed.append(manager.index_path)
+
+        # Re-render index.md for each conversation
+        renderer = ConversationMarkdownRenderer()
+        count = 0
+        for entry in entries:
+            conversation_id = str(entry.get("conversation_id", ""))
+            try:
+                conversation = manager.read(conversation_id)
+                md_path = manager.resolve_path(conversation_id) / "index.md"
+                md_path.write_text(renderer.render(conversation), encoding="utf-8")
+                changed.append(md_path)
+                count += 1
+            except Exception as exc:
+                errors.append(f"conversation {conversation_id}: {exc}")
+
+        return count, changed, errors
 
 
 # ---------------------------------------------------------------------------

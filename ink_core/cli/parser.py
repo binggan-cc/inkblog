@@ -134,6 +134,10 @@ def _intent_from_namespace(ns: argparse.Namespace):
 
     elif cmd == "rebuild":
         target = None
+        if getattr(ns, "conversations", False):
+            params["scope"] = "conversations"
+        elif getattr(ns, "articles", False):
+            params["scope"] = "articles"
 
     elif cmd == "publish":
         target = getattr(ns, "target", None)
@@ -226,7 +230,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p_new.add_argument("--template", help="Template name", default="default")
 
     # rebuild
-    sub.add_parser("rebuild", help="[核心] Rebuild all derived files and indexes")
+    p_rebuild = sub.add_parser("rebuild", help="[核心] Rebuild all derived files and indexes")
+    p_rebuild_scope = p_rebuild.add_mutually_exclusive_group()
+    p_rebuild_scope.add_argument("--conversations", action="store_true", help="Rebuild conversation index and Markdown only")
+    p_rebuild_scope.add_argument("--articles", action="store_true", help="Rebuild article layers and timeline only")
 
     # publish
     p_pub = sub.add_parser("publish", help="[技能] Publish an article to one or more channels")
