@@ -22,6 +22,12 @@ def _build_executor(workspace_root: Path):
     from ink_core.agent.commands.skill_save_command import SkillSaveCommand
     from ink_core.cli.builtin import BuildCommand, DoctorCommand, InitCommand, NewCommand, RebuildCommand, SkillsListCommand
     from ink_core.cli.intent import IntentRouter
+    from ink_core.conversation.commands import (
+        BuildConversationsCommand,
+        ImportConversationCommand,
+        LinkSourceCommand,
+        RenderConversationCommand,
+    )
     from ink_core.core.executor import CommandExecutor
     from ink_core.core.session import SessionLogger
     from ink_core.git.manager import GitManager
@@ -42,6 +48,10 @@ def _build_executor(workspace_root: Path):
         "skills": SkillsListCommand(registry),
         "build": BuildCommand(workspace_root),
         "doctor": DoctorCommand(workspace_root),
+        "import-conversation": ImportConversationCommand(workspace_root),
+        "render-conversation": RenderConversationCommand(workspace_root),
+        "build-conversations": BuildConversationsCommand(workspace_root),
+        "link-source": LinkSourceCommand(workspace_root),
         # Agent commands
         "log": LogCommand(workspace_root),
         "recall": RecallCommand(workspace_root),
@@ -150,6 +160,8 @@ def _intent_from_namespace(ns: argparse.Namespace):
             params["tag"] = ns.tag
         if getattr(ns, "fulltext", False):
             params["fulltext"] = True
+        if getattr(ns, "type", None):
+            params["type"] = ns.type
 
     elif cmd == "skills":
         target = None
@@ -166,6 +178,26 @@ def _intent_from_namespace(ns: argparse.Namespace):
         target = None
         if getattr(ns, "migrate_status", False):
             params["migrate_status"] = True
+
+    elif cmd == "import-conversation":
+        target = getattr(ns, "file", None)
+        if getattr(ns, "source", None):
+            params["source"] = ns.source
+        if getattr(ns, "title", None):
+            params["title"] = ns.title
+
+    elif cmd == "render-conversation":
+        target = getattr(ns, "conversation_id", None)
+        if getattr(ns, "preview", False):
+            params["preview"] = True
+
+    elif cmd == "build-conversations":
+        target = None
+
+    elif cmd == "link-source":
+        target = getattr(ns, "article_id", None)
+        if getattr(ns, "conversation", None):
+            params["conversation"] = ns.conversation
 
     else:
         target = None
@@ -215,10 +247,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p_ana_group.add_argument("--all", action="store_true", help="Analyse all articles")
 
     # search
-    p_srch = sub.add_parser("search", help="[技能] Search articles")
+    p_srch = sub.add_parser("search", help="[技能] Search articles and conversations")
     p_srch.add_argument("query", help="Search query")
     p_srch.add_argument("--tag", help="Filter by tag")
     p_srch.add_argument("--fulltext", action="store_true", help="Enable L2 full-text search")
+    p_srch.add_argument("--type", choices=["conversation", "all"], help="Search scope")
 
     # skills
     p_skills = sub.add_parser("skills", help="[核心] Manage skills")
@@ -233,6 +266,22 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     # doctor
     p_doctor = sub.add_parser("doctor", help="[核心] Run workspace maintenance checks")
     p_doctor.add_argument("--migrate-status", action="store_true", help="Migrate old local published records to drafted")
+
+    # conversation
+    p_import = sub.add_parser("import-conversation", help="[对话] Import a local conversation cache file")
+    p_import.add_argument("file", help="Conversation cache file path")
+    p_import.add_argument("--source", default="unknown", help="Conversation source name")
+    p_import.add_argument("--title", help="Conversation title")
+
+    p_render = sub.add_parser("render-conversation", help="[对话] Render a conversation archive")
+    p_render.add_argument("conversation_id", help="Conversation ID")
+    p_render.add_argument("--preview", action="store_true", help="Also generate preview.html")
+
+    sub.add_parser("build-conversations", help="[对话] Build static conversation HTML pages")
+
+    p_link = sub.add_parser("link-source", help="[对话] Link an article to a source conversation")
+    p_link.add_argument("article_id", help="Article canonical ID")
+    p_link.add_argument("--conversation", required=True, help="Conversation ID")
 
     from ink_core.agent import VALID_CATEGORIES
 

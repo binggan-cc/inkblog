@@ -87,6 +87,12 @@ _NL_RULES: list[tuple[re.Pattern, str, int | None, Any]] = [
         1,
         _no_params,
     ),
+    (
+        re.compile(r"(?:build-conversations|构建对话)", re.IGNORECASE),
+        "build-conversations",
+        None,
+        _no_params,
+    ),
     # new "<title>" / create "<title>"
     (
         re.compile(r'(?:new|create|创建|新建)\s+"([^"]+)"', re.IGNORECASE),
@@ -123,7 +129,20 @@ _NL_RULES: list[tuple[re.Pattern, str, int | None, Any]] = [
     ),
 ]
 
-_AVAILABLE_ACTIONS = ["publish", "syndicate", "analyze", "search", "new", "rebuild", "init", "skills"]
+_AVAILABLE_ACTIONS = [
+    "publish",
+    "syndicate",
+    "analyze",
+    "search",
+    "new",
+    "rebuild",
+    "init",
+    "skills",
+    "import-conversation",
+    "render-conversation",
+    "build-conversations",
+    "link-source",
+]
 
 
 class NLParser:
@@ -184,7 +203,19 @@ class IntentRouter:
         self._registry = skill_registry
         self._workspace_root = workspace_root
 
-    _HUMAN_COMMANDS = {"publish", "syndicate", "build", "search", "analyze", "rebuild", "doctor"}
+    _HUMAN_COMMANDS = {
+        "publish",
+        "syndicate",
+        "build",
+        "search",
+        "analyze",
+        "rebuild",
+        "doctor",
+        "import-conversation",
+        "render-conversation",
+        "build-conversations",
+        "link-source",
+    }
 
     def resolve(self, intent: Intent) -> RouteResult:
         """Resolve an Intent to a RouteResult.

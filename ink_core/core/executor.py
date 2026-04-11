@@ -15,7 +15,17 @@ if TYPE_CHECKING:
 
 
 # Commands that trigger an aggregate Git commit after execution
-_WRITE_COMMANDS = {"new", "init", "rebuild", "publish", "build"}
+_WRITE_COMMANDS = {
+    "new",
+    "init",
+    "rebuild",
+    "publish",
+    "build",
+    "import-conversation",
+    "render-conversation",
+    "build-conversations",
+    "link-source",
+}
 
 
 @dataclass
@@ -230,6 +240,8 @@ class CommandExecutor:
             return f"chore: {action}"
         if action == "build":
             return "build: regenerate static site"
+        if action in {"import-conversation", "render-conversation", "build-conversations", "link-source"}:
+            return f"feat: {action} {slug}"
         return f"update: {slug}"
 
     @staticmethod
