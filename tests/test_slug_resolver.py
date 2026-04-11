@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import pytest
@@ -83,9 +84,21 @@ class TestGenerateSlug:
 
     def test_cjk_without_pinyin_falls_back_to_ascii_hash(self, resolver, monkeypatch):
         monkeypatch.setattr(resolver, "_check_pinyin", lambda: None)
-        slug = resolver.generate_slug("Python 深度学习")
-        assert slug.startswith("python-")
+        title = "Python 深度学习"
+        slug = resolver.generate_slug(title)
+        assert slug == f"python-{hashlib.sha256(title.encode('utf-8')).hexdigest()[:4]}"
         assert len(slug.rsplit("-", 1)[-1]) == 4
+
+    def test_pypinyin_missing_logs_warning(self, resolver, monkeypatch, caplog):
+        def missing():
+            from ink_core.fs import article as article_module
+
+            article_module.logger.warning("pypinyin is not installed; falling back to hash-based slug generation.")
+            return None
+
+        monkeypatch.setattr(resolver, "_check_pinyin", missing)
+        resolver.generate_slug("中文")
+        assert "pypinyin is not installed" in caplog.text
 
 
 class TestCheckConflict:

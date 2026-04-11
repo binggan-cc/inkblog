@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import html
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def render_markdown(md: str, *, safe: bool = True) -> str:
@@ -22,6 +25,7 @@ def _mistune_available() -> bool:
     try:
         import mistune  # noqa: F401
     except ImportError:
+        logger.warning("mistune is not installed; falling back to built-in Markdown renderer.")
         return False
     return True
 

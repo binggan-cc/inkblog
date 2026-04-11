@@ -203,6 +203,7 @@ class TestPublishSkillStatusGate:
         assert result.success is False
         assert "draft" in result.message
         assert result.data["current_status"] == "draft"
+        assert result.data["valid_transitions"]
 
     def test_rejects_review_status(self, ink_dir: Path):
         _make_article(ink_dir, "2025/03/21-test-review", status="review")

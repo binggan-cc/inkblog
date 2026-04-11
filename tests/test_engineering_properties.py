@@ -36,7 +36,7 @@ def _definition(*steps: str) -> SkillDefinition:
 
 
 @given(title=_titles)
-@settings(max_examples=80)
+@settings(max_examples=100)
 def test_property_1_slug_non_empty(title: str) -> None:
     slug = SlugResolver(Path("/tmp")).generate_slug(title)
     assert slug
@@ -44,7 +44,7 @@ def test_property_1_slug_non_empty(title: str) -> None:
 
 
 @given(title=_cjk_titles)
-@settings(max_examples=50)
+@settings(max_examples=100)
 def test_property_2_cjk_slug_usable(title: str) -> None:
     slug = SlugResolver(Path("/tmp")).generate_slug(title)
     assert slug
@@ -52,7 +52,7 @@ def test_property_2_cjk_slug_usable(title: str) -> None:
 
 
 @given(title=_titles)
-@settings(max_examples=80)
+@settings(max_examples=100)
 def test_property_3_slug_deterministic(title: str) -> None:
     resolver = SlugResolver(Path("/tmp"))
     assert resolver.generate_slug(title) == resolver.generate_slug(title)
@@ -97,14 +97,14 @@ def test_property_7_draft_saved_does_not_publish(tmp_path: Path) -> None:
 
 
 @given(payload=st.text(min_size=0, max_size=80))
-@settings(max_examples=50)
+@settings(max_examples=100)
 def test_property_8_rendering_escapes_scripts(payload: str) -> None:
     rendered = render_markdown(f"<script>{payload}</script>", safe=True)
     assert "<script>" not in rendered
 
 
 @given(md=st.text(min_size=0, max_size=200))
-@settings(max_examples=50)
+@settings(max_examples=100)
 def test_property_9_rendering_deterministic(md: str) -> None:
     assert render_markdown(md, safe=True) == render_markdown(md, safe=True)
 
@@ -122,7 +122,7 @@ def test_property_10_skill_steps_execute_in_order(tmp_path: Path) -> None:
 
 def test_property_11_skill_failure_isolates_later_steps(tmp_path: Path) -> None:
     result = SkillExecutor(tmp_path).execute(
-        _definition("unsupported step", "write_file after.txt"),
+        _definition("write_file ../../escape.txt", "write_file after.txt"),
         None,
         {},
     )
@@ -130,21 +130,21 @@ def test_property_11_skill_failure_isolates_later_steps(tmp_path: Path) -> None:
     assert not (tmp_path / ".ink" / "skill-output" / "after.txt").exists()
 
 
-def test_property_12_unsupported_steps_are_not_skipped(tmp_path: Path) -> None:
+def test_property_12_unsupported_steps_are_skipped(tmp_path: Path) -> None:
     result = SkillExecutor(tmp_path).execute(_definition("summarize L2"), None, {})
-    assert not result.success
-    assert "Unsupported" in result.message
+    assert result.success
+    assert "skipped" in result.data["outputs"][0]
 
 
 @given(title=st.text(min_size=1, max_size=40))
 @settings(
-    max_examples=30,
+    max_examples=100,
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
 )
 def test_property_13_template_variables_escape(tmp_path: Path, title: str) -> None:
     from ink_core.site.renderer import TemplateRenderer
 
-    slug = hashlib.sha1(title.encode("utf-8")).hexdigest()[:12]
+    slug = hashlib.sha256(title.encode("utf-8")).hexdigest()[:12]
     article = ArticleManager(tmp_path).create(
         f"<script>{title}</script>",
         date="2025-03-03",

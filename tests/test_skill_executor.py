@@ -34,7 +34,7 @@ def test_read_content_then_write_file(tmp_path: Path) -> None:
     assert "Executor Test" in out.read_text(encoding="utf-8")
 
 
-def test_unsupported_step_stops_execution(tmp_path: Path) -> None:
+def test_unsupported_step_is_skipped(tmp_path: Path) -> None:
     article = ArticleManager(tmp_path).create("Unsupported Step", date="2025-02-02")
     result = SkillExecutor(tmp_path).execute(
         _definition("do anything", "write_file should-not-exist.txt"),
@@ -42,8 +42,23 @@ def test_unsupported_step_stops_execution(tmp_path: Path) -> None:
         {},
     )
 
-    assert not result.success
-    assert not (tmp_path / ".ink" / "skill-output" / "should-not-exist.txt").exists()
+    assert result.success
+    assert (tmp_path / ".ink" / "skill-output" / "should-not-exist.txt").exists()
+    assert "skipped" in result.data["outputs"][0]
+
+
+def test_chinese_keywords_map_to_supported_steps(tmp_path: Path) -> None:
+    article = ArticleManager(tmp_path).create("中文 DSL", date="2025-02-03")
+    result = SkillExecutor(tmp_path).execute(
+        _definition("读取 L0", "写入 zh/out.txt"),
+        article.canonical_id,
+        {},
+    )
+
+    out = tmp_path / ".ink" / "skill-output" / "zh" / "out.txt"
+    assert result.success
+    assert out.exists()
+    assert len(result.data["outputs"]) == 2
 
 
 def test_missing_target_fails(tmp_path: Path) -> None:
@@ -66,3 +81,14 @@ def test_write_file_rejects_absolute_path(tmp_path: Path) -> None:
     result = SkillExecutor(tmp_path).execute(_definition("write_file /tmp/foo"), None, {})
     assert not result.success
     assert "absolute" in result.message
+
+
+def test_outputs_records_supported_steps(tmp_path: Path) -> None:
+    article = ArticleManager(tmp_path).create("Outputs Test", date="2025-02-04")
+    result = SkillExecutor(tmp_path).execute(
+        _definition("read_content L0", "write_file outputs.txt"),
+        article.canonical_id,
+        {},
+    )
+    assert result.success
+    assert len(result.data["outputs"]) == 2

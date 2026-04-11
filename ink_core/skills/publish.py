@@ -263,7 +263,10 @@ class PublishSkill(Skill):
                     f"Article status is '{current_status}', not '{ArticleStatus.READY.value}'. "
                     f"Update status to '{ArticleStatus.READY.value}' before publishing."
                 ),
-                data={"current_status": current_status},
+                data={
+                    "current_status": current_status,
+                    "valid_transitions": ArticleStatus.valid_transitions().get(current_status, []),
+                },
             )
 
         # --- Run adapters ---

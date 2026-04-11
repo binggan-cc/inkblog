@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import sys
+import builtins
 
-from ink_core.fs.markdown_renderer import render_markdown
+from ink_core.fs.markdown_renderer import _mistune_available, render_markdown
 
 
 def test_render_markdown_escapes_raw_html() -> None:
@@ -30,3 +31,16 @@ def test_module_has_no_site_renderer_dependency() -> None:
     import ink_core.fs.markdown_renderer  # noqa: F401
 
     assert "ink_core.site.renderer" not in sys.modules
+
+
+def test_mistune_missing_logs_warning(monkeypatch, caplog) -> None:
+    real_import = builtins.__import__
+
+    def fake_import(name, *args, **kwargs):
+        if name == "mistune":
+            raise ImportError("missing")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+    assert _mistune_available() is False
+    assert "mistune is not installed" in caplog.text

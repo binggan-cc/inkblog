@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -10,6 +11,9 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     pass
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -108,13 +112,14 @@ class SlugResolver:
 
     def _short_hash(self, title: str, length: int) -> str:
         """Return a deterministic short hash for collision-resistant fallbacks."""
-        return hashlib.sha1(title.encode("utf-8")).hexdigest()[:length]
+        return hashlib.sha256(title.encode("utf-8")).hexdigest()[:length]
 
     def _check_pinyin(self):
         """Return pypinyin.lazy_pinyin when available, otherwise None."""
         try:
             from pypinyin import lazy_pinyin
         except ImportError:
+            logger.warning("pypinyin is not installed; falling back to hash-based slug generation.")
             return None
         return lazy_pinyin
 
