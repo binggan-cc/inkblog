@@ -1,6 +1,6 @@
 # Ink Blog Core
 
-> v0.2.0
+> v0.3.0
 
 [中文](#中文) | [English](#english)
 
