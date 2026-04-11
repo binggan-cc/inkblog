@@ -20,7 +20,7 @@
     - 更新 `dev` 依赖组包含 `pypinyin>=0.50`、`mistune>=3.0`
     - _Requirements: 3.1, NFR 6.2_
 
-  - [-] 1.2 创建 `ink_core/core/status.py` — ArticleStatus 枚举
+  - [x] 1.2 创建 `ink_core/core/status.py` — ArticleStatus 枚举
     - 实现 `ArticleStatus(str, Enum)` 枚举，包含六个值：`draft`、`review`、`ready`、`drafted`、`published`、`archived`
     - 实现 `is_valid()`、`valid_transitions()`、`is_publishable()`、`is_syndicatable()`、`is_visible_in_search()`
     - 注意：v0.4.0 只引入枚举和修复 PublishSkill 的 draft_saved bug，不实现 syndicate 命令
